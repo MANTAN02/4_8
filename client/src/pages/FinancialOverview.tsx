@@ -1,13 +1,9 @@
-import { useState } from 'react';
 import { TrendingUp, DollarSign, Users, Store, Target, Calendar, BarChart3, PieChart, ArrowUpRight, ArrowDownRight, Coins } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 
 export default function FinancialOverview() {
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
 
   // Revenue projections based on user growth
   const revenueMetrics = {
@@ -227,10 +223,12 @@ export default function FinancialOverview() {
                           {month.users} users • {month.businesses} businesses
                         </span>
                       </div>
-                      <Progress 
-                        value={(month.revenue / 340000) * 100} 
-                        className="h-2"
-                      />
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-orange-600 to-amber-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(month.revenue / 340000) * 100}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 ))}
