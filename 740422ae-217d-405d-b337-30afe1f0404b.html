@@ -1,0 +1,736 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baartal - Barter Smarter. Earn & Spend B-Coins Across Mumbai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'baartal-orange': '#FF6F00',
+                        'baartal-blue': '#102A43',
+                        'baartal-cream': '#FEF7F0'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-baartal-cream font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="text-2xl font-bold text-baartal-orange">
+                        <i class="fas fa-coins mr-2"></i>Baartal
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#how-it-works" class="text-baartal-blue hover:text-baartal-orange transition-colors">How It Works</a>
+                    <a href="#bundles" class="text-baartal-blue hover:text-baartal-orange transition-colors">Explore Bundles</a>
+                    <a href="#merchants" class="text-baartal-blue hover:text-baartal-orange transition-colors">For Merchants</a>
+                    <button class="bg-baartal-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors font-medium">
+                        Join Now
+                    </button>
+                </div>
+                <button class="md:hidden text-baartal-blue">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-baartal-cream to-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h1 class="text-4xl lg:text-6xl font-bold text-baartal-blue mb-6">
+                        Barter Smarter. <span class="text-baartal-orange">Earn & Spend B-Coins</span> Across Mumbai.
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8">
+                        Join a bundle of trusted neighborhood businesses and grow together through barter and loyalty.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="joinBusinessBtn" class="bg-baartal-orange text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-store mr-2"></i>Join as Business
+                        </button>
+                        <button id="exploreBundlesBtn" class="bg-transparent border-2 border-baartal-blue text-baartal-blue px-8 py-4 rounded-full text-lg font-semibold hover:bg-baartal-blue hover:text-white transition-colors">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Explore Baartal Bundles
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <!-- Mumbai local market scene -->
+                    <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" alt="Mumbai local market with vendors and customers" class="rounded-xl shadow-2xl w-full h-auto" />
+                    <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-baartal-orange rounded-full flex items-center justify-center">
+                                <i class="fas fa-coins text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-baartal-blue">B-Coins Earned</div>
+                                <div class="text-baartal-orange font-bold">₹250</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How Baartal Works - Customers -->
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-baartal-blue mb-4">How Baartal Works</h2>
+                <p class="text-xl text-gray-600">Simple steps to save more and support local</p>
+            </div>
+
+            <!-- Customer Flow -->
+            <div class="mb-20">
+                <h3 class="text-2xl font-bold text-baartal-blue mb-8 text-center">For Customers</h3>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-baartal-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-shopping-bag text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-baartal-blue mb-4">1. Shop at Baartal Business</h4>
+                        <p class="text-gray-600">Visit any Baartal-listed business in your neighborhood bundle</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-baartal-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-coins text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-baartal-blue mb-4">2. Earn B-Coins</h4>
+                        <p class="text-gray-600">Get B-Coins with every purchase - like cashback but better!</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-baartal-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-sync-alt text-white text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-baartal-blue mb-4">3. Spend Anywhere</h4>
+                        <p class="text-gray-600">Use B-Coins at any other shop in your bundle - endless possibilities!</p>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                    <div class="inline-flex items-center space-x-6 bg-baartal-cream px-8 py-4 rounded-full">
+                        <span class="text-baartal-blue font-semibold">✅ Save more</span>
+                        <span class="text-baartal-blue font-semibold">✅ Discover more</span>
+                        <span class="text-baartal-blue font-semibold">✅ Support local</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Flow -->
+            <div class="bg-gradient-to-r from-baartal-blue to-blue-900 rounded-2xl p-12 text-white">
+                <h3 class="text-2xl font-bold mb-8 text-center">For Businesses</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-6">
+                        <i class="fas fa-crown text-baartal-orange text-2xl mb-4"></i>
+                        <h4 class="font-semibold mb-2">Exclusive Bundles</h4>
+                        <p class="text-sm opacity-90">Only 1 shop per category in each region - no direct competition</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-6">
+                        <i class="fas fa-handshake text-baartal-orange text-2xl mb-4"></i>
+                        <h4 class="font-semibold mb-2">B2B Barter</h4>
+                        <p class="text-sm opacity-90">Exchange services with bundle partners - salon ads for photographer services</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-6">
+                        <i class="fas fa-users text-baartal-orange text-2xl mb-4"></i>
+                        <h4 class="font-semibold mb-2">Loyal Customers</h4>
+                        <p class="text-sm opacity-90">B-Coins bring customers back and attract new ones from partners</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-6">
+                        <i class="fas fa-chart-line text-baartal-orange text-2xl mb-4"></i>
+                        <h4 class="font-semibold mb-2">Pay Only When Used</h4>
+                        <p class="text-sm opacity-90">₹0 upfront cost. More generous you are, less you pay</p>
+                    </div>
+                </div>
+                <div class="text-center mt-8">
+                    <button class="bg-baartal-orange text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition-colors">
+                        Apply to Join Your Area's Bundle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Merchant Benefits -->
+    <section id="merchants" class="py-20 bg-baartal-cream">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-baartal-blue mb-4">Why Merchants Love Baartal</h2>
+                <p class="text-xl text-gray-600">Join thousands of successful local businesses</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-bullhorn text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Free Cross-Promotion</h3>
+                    <p class="text-gray-600">Get promoted by all bundle partners through their customer base</p>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-redo text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Repeat Customers</h3>
+                    <p class="text-gray-600">B-Coin loyalty keeps customers coming back for more</p>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-shield-alt text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Zero Risk Model</h3>
+                    <p class="text-gray-600">Pay only when customers actually use B-Coins at your shop</p>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-share-alt text-pink-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Social Media Boost</h3>
+                    <p class="text-gray-600">Featured on our Instagram and WhatsApp channels regularly</p>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-heart text-yellow-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Community Support</h3>
+                    <p class="text-gray-600">Be part of a supportive local business community</p>
+                </div>
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-map-marker-alt text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-baartal-blue mb-4">Exclusive Territory</h3>
+                    <p class="text-gray-600">Only one business per category in your local area</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Explore Bundles -->
+    <section id="bundles" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-baartal-blue mb-4">Explore Bundles by Region</h2>
+                <p class="text-xl text-gray-600">Discover trusted local businesses near you</p>
+            </div>
+            
+            <!-- Region Search -->
+            <div class="max-w-2xl mx-auto mb-12">
+                <div class="relative">
+                    <input type="text" placeholder="Search by area or pincode..." class="w-full px-6 py-4 border-2 border-gray-200 rounded-full focus:border-baartal-orange outline-none text-lg">
+                    <button class="absolute right-2 top-2 bg-baartal-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sample Bundles -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Andheri West Bundle -->
+                <div class="bg-gradient-to-br from-white to-baartal-cream rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-baartal-blue">Andheri West Circle</h3>
+                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">8/10 slots filled</span>
+                        </div>
+                        <!-- Mumbai street market image -->
+                        <img src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200" alt="Bustling Mumbai street market with various vendors" class="w-full h-32 object-cover rounded-lg mb-4" />
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-shopping-cart text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Sharma Kirana</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">5% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-cut text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Modern Salon</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">8% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-utensils text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Taste of Mumbai</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">6% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between opacity-60">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-tshirt text-gray-400"></i>
+                                    <span class="text-gray-500">Clothing Store</span>
+                                </div>
+                                <span class="text-sm text-green-600 font-medium">Available</span>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 bg-baartal-orange text-white py-3 rounded-full font-semibold hover:bg-orange-600 transition-colors">
+                            View Bundle Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bandra Bundle -->
+                <div class="bg-gradient-to-br from-white to-baartal-cream rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-baartal-blue">Bandra West Hub</h3>
+                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">9/10 slots filled</span>
+                        </div>
+                        <!-- Indian kirana store -->
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200" alt="Traditional Indian kirana store with owner standing outside" class="w-full h-32 object-cover rounded-lg mb-4" />
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-coffee text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Café Mocha</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">7% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-mobile-alt text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Tech Galaxy</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">4% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-shoe-prints text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Step Forward</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">6% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between opacity-60">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-pills text-gray-400"></i>
+                                    <span class="text-gray-500">Medicine Store</span>
+                                </div>
+                                <span class="text-sm text-green-600 font-medium">Available</span>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 bg-baartal-orange text-white py-3 rounded-full font-semibold hover:bg-orange-600 transition-colors">
+                            View Bundle Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Powai Bundle -->
+                <div class="bg-gradient-to-br from-white to-baartal-cream rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-baartal-blue">Powai Business Circle</h3>
+                            <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-sm font-medium">6/10 slots filled</span>
+                        </div>
+                        <!-- Local community shopping scene -->
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200" alt="Local community shopping area with people and small shops" class="w-full h-32 object-cover rounded-lg mb-4" />
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-gift text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Wonder Toys</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">10% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-book text-baartal-orange"></i>
+                                    <span class="text-baartal-blue font-medium">Study Corner</span>
+                                </div>
+                                <span class="text-baartal-orange font-bold">5% B-Coins</span>
+                            </div>
+                            <div class="flex items-center justify-between opacity-60">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-shopping-cart text-gray-400"></i>
+                                    <span class="text-gray-500">Kirana Store</span>
+                                </div>
+                                <span class="text-sm text-green-600 font-medium">Available</span>
+                            </div>
+                            <div class="flex items-center justify-between opacity-60">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-utensils text-gray-400"></i>
+                                    <span class="text-gray-500">Restaurant</span>
+                                </div>
+                                <span class="text-sm text-green-600 font-medium">Available</span>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-6 bg-baartal-blue text-white py-3 rounded-full font-semibold hover:bg-blue-800 transition-colors">
+                            Join This Bundle
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <button class="bg-transparent border-2 border-baartal-orange text-baartal-orange px-8 py-3 rounded-full font-semibold hover:bg-baartal-orange hover:text-white transition-colors">
+                    View All 50+ Mumbai Regions
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- B-Coins Section -->
+    <section class="py-20 bg-gradient-to-br from-baartal-orange to-orange-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">B-Coins: Your Local Loyalty Currency</h2>
+                <p class="text-xl opacity-90">Better than cashback, more valuable than points</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <!-- Mobile payment India scene -->
+                    <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400" alt="Person making digital payment on mobile phone in India" class="rounded-xl shadow-2xl w-full h-auto" />
+                </div>
+                <div class="space-y-8">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-coins text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Earned When You Pay</h3>
+                            <p class="opacity-90">Get B-Coins with every purchase at Baartal businesses - typically 5-10% of your bill amount</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-sync-alt text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Redeemable Anywhere</h3>
+                            <p class="opacity-90">Use your B-Coins at any other shop in your bundle - groceries, salon, café, anywhere!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-infinity text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Never Expires</h3>
+                            <p class="opacity-90">Your B-Coins never expire. Save them up for bigger purchases or share with family</p>
+                        </div>
+                    </div>
+                    <div class="pt-4">
+                        <button class="bg-white text-baartal-orange px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-wallet mr-2"></i>Start Earning B-Coins
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-baartal-blue mb-4">What Mumbai Merchants Say</h2>
+                <p class="text-xl text-gray-600">Real stories from real business owners</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-baartal-cream rounded-xl p-8 shadow-lg">
+                    <!-- Mumbai street food vendor -->
+                    <img src="https://images.unsplash.com/photo-1599700403969-f77b3aa74837?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" alt="Smiling Mumbai street food vendor in his stall" class="w-16 h-16 rounded-full object-cover mb-6" />
+                    <p class="text-gray-700 mb-6 italic">"I joined Baartal and got 20 new customers in a month — all from my own area! The B-Coin system brings them back again and again."</p>
+                    <div>
+                        <div class="font-semibold text-baartal-blue">Rajesh Kumar</div>
+                        <div class="text-sm text-gray-600">Kumar Vada Pav, Andheri West</div>
+                    </div>
+                </div>
+                <div class="bg-baartal-cream rounded-xl p-8 shadow-lg">
+                    <!-- Mumbai local business owner -->
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150&q=80" alt="Professional Indian business owner smiling in his shop" class="w-16 h-16 rounded-full object-cover mb-6" />
+                    <p class="text-gray-700 mb-6 italic">"The bundle partnership is amazing! My customers discover other shops, and their customers find me. It's a win-win community."</p>
+                    <div>
+                        <div class="font-semibold text-baartal-blue">Priya Sharma</div>
+                        <div class="text-sm text-gray-600">Sharma Electronics, Bandra</div>
+                    </div>
+                </div>
+                <div class="bg-baartal-cream rounded-xl p-8 shadow-lg">
+                    <!-- Mumbai shopkeeper -->
+                    <img src="https://pixabay.com/get/g38234c7f62ea264fcc7860d6e5c45fc2966f350d7bb6b0e7c579602e10f23ac1f117911a3adeace527b5e5056cbca8ebce19573bc6584892b85f49f06c28742d_1280.jpg" alt="Friendly Mumbai shopkeeper standing in his store entrance" class="w-16 h-16 rounded-full object-cover mb-6" />
+                    <p class="text-gray-700 mb-6 italic">"Zero upfront cost and I only pay when customers actually use B-Coins. It's the smartest loyalty program I've ever joined."</p>
+                    <div>
+                        <div class="font-semibold text-baartal-blue">Mohammad Ali</div>
+                        <div class="text-sm text-gray-600">Ali Tailoring, Powai</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Get Started Section -->
+    <section class="py-20 bg-baartal-blue text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Get Started with Baartal</h2>
+                <p class="text-xl opacity-90">Join Mumbai's growing community of smart local businesses</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Business Signup -->
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">For Business Owners</h3>
+                    <form class="space-y-6" data-mock="true">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Business Name</label>
+                            <input type="text" placeholder="Enter your business name" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Owner Name</label>
+                            <input type="text" placeholder="Your full name" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Contact Number</label>
+                            <input type="tel" placeholder="+91 9876543210" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Business Category</label>
+                            <select class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white focus:outline-none focus:border-baartal-orange">
+                                <option value="">Select category</option>
+                                <option value="kirana">Kirana / Grocery</option>
+                                <option value="electronics">Electronics / Gadgets</option>
+                                <option value="clothing">Clothing Store</option>
+                                <option value="food">Food / Restaurant</option>
+                                <option value="salon">Salon / Beauty</option>
+                                <option value="footwear">Footwear</option>
+                                <option value="cafe">Cafe / Ice Cream</option>
+                                <option value="gifts">Gift / Toy</option>
+                                <option value="medicine">Medicine / Wellness</option>
+                                <option value="stationery">Stationery / School</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Pincode</label>
+                            <input type="text" placeholder="e.g., 400053" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange">
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" class="mt-1" data-mock="true">
+                            <label class="text-sm opacity-90">I agree to the exclusive bundle system (only 1 business per category per region)</label>
+                        </div>
+                        <button type="submit" class="w-full bg-baartal-orange text-white py-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors" data-event="click:handleBusinessSignup">
+                            Join Baartal Bundle
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Customer Signup -->
+                <div class="bg-white/10 backdrop-blur rounded-2xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">For Customers</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Email or Phone Number</label>
+                            <input type="text" placeholder="Enter email or phone" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange" data-mock="true">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Your Area</label>
+                            <input type="text" placeholder="Enter your locality or pincode" class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:border-baartal-orange" data-mock="true">
+                        </div>
+                        <button class="w-full bg-baartal-orange text-white py-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors mb-4" data-event="click:handleCustomerSignup">
+                            Discover Bundles Near You
+                        </button>
+                        
+                        <div class="border-t border-white/20 pt-6">
+                            <h4 class="font-semibold mb-4 text-center">Join Our Community</h4>
+                            <div class="space-y-3">
+                                <button class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
+                                    <i class="fab fa-whatsapp mr-2 text-xl"></i>
+                                    Join Baartal WhatsApp Channel
+                                </button>
+                                <button class="w-full bg-pink-600 text-white py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors flex items-center justify-center">
+                                    <i class="fab fa-instagram mr-2 text-xl"></i>
+                                    Follow on Instagram
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-baartal-blue text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-2xl font-bold text-baartal-orange mb-4">
+                        <i class="fas fa-coins mr-2"></i>Baartal
+                    </div>
+                    <p class="text-white/80 mb-4">Connecting Mumbai's local businesses through barter and loyalty.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white/60 hover:text-baartal-orange transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-white/60 hover:text-baartal-orange transition-colors">
+                            <i class="fab fa-whatsapp text-xl"></i>
+                        </a>
+                        <a href="#" class="text-white/60 hover:text-baartal-orange transition-colors">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-white/80">
+                        <li><a href="#how-it-works" class="hover:text-baartal-orange transition-colors">How It Works</a></li>
+                        <li><a href="#bundles" class="hover:text-baartal-orange transition-colors">Explore Bundles</a></li>
+                        <li><a href="#merchants" class="hover:text-baartal-orange transition-colors">For Merchants</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-white/80">
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">FAQ</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">WhatsApp Support</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Merchant Help</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-white/80">
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Terms of Use</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Refund Policy</a></li>
+                        <li><a href="#" class="hover:text-baartal-orange transition-colors">Merchant Agreement</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/20 mt-12 pt-8 text-center">
+                <p class="text-white/60">© 2024 Baartal. All rights reserved. Proudly built in Mumbai 🇮🇳</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Login Modal (hidden by default) -->
+    <div id="loginModal" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl max-w-md w-full p-8">
+                <div class="text-center mb-8">
+                    <div class="text-2xl font-bold text-baartal-orange mb-2">
+                        <i class="fas fa-coins mr-2"></i>Baartal
+                    </div>
+                    <h2 class="text-xl font-semibold text-baartal-blue">Shop Local. Barter Better. Earn B-Coins.</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <button id="customerLoginBtn" class="w-full bg-baartal-blue text-white py-4 rounded-full font-semibold hover:bg-blue-800 transition-colors flex items-center justify-center">
+                        <i class="fas fa-user mr-2"></i>Login as Customer
+                    </button>
+                    <button id="businessLoginBtn" class="w-full bg-baartal-orange text-white py-4 rounded-full font-semibold hover:bg-orange-600 transition-colors flex items-center justify-center">
+                        <i class="fas fa-store mr-2"></i>Login as Business
+                    </button>
+                </div>
+                
+                <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IIFE to avoid global namespace pollution
+        (function() {
+            // Simple modal functionality for login
+            const joinBusinessBtn = document.getElementById('joinBusinessBtn');
+            const exploreBundlesBtn = document.getElementById('exploreBundlesBtn');
+            const loginModal = document.getElementById('loginModal');
+            const closeModal = document.getElementById('closeModal');
+            const customerLoginBtn = document.getElementById('customerLoginBtn');
+            const businessLoginBtn = document.getElementById('businessLoginBtn');
+
+            // Show modal when join buttons are clicked
+            if (joinBusinessBtn) {
+                joinBusinessBtn.addEventListener('click', function() {
+                    loginModal.classList.remove('hidden');
+                    // TODO: Direct to business signup flow
+                });
+            }
+
+            if (exploreBundlesBtn) {
+                exploreBundlesBtn.addEventListener('click', function() {
+                    loginModal.classList.remove('hidden');
+                    // TODO: Direct to customer signup flow
+                });
+            }
+
+            // Close modal
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    loginModal.classList.add('hidden');
+                });
+            }
+
+            // Customer login flow
+            if (customerLoginBtn) {
+                customerLoginBtn.addEventListener('click', function() {
+                    // TODO: Implement customer login/signup flow
+                    alert('Customer login/signup flow will be implemented here');
+                });
+            }
+
+            // Business login flow
+            if (businessLoginBtn) {
+                businessLoginBtn.addEventListener('click', function() {
+                    // TODO: Implement business login/signup flow
+                    alert('Business login/signup flow will be implemented here');
+                });
+            }
+
+            // Close modal when clicking outside
+            if (loginModal) {
+                loginModal.addEventListener('click', function(e) {
+                    if (e.target === loginModal) {
+                        loginModal.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Form submission handlers (placeholder)
+            document.addEventListener('submit', function(e) {
+                if (e.target.tagName === 'FORM') {
+                    e.preventDefault();
+                    // TODO: Implement actual form submission logic
+                    alert('Form submission will be implemented with backend integration');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
