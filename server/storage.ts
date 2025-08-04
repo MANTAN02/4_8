@@ -13,6 +13,17 @@ import type {
   InsertQrCode,
   InsertRating,
 } from "@shared/schema";
+import { db } from "./db";
+import {
+  users,
+  businesses,
+  bundles,
+  bundleMemberships,
+  bCoinTransactions,
+  qrCodes,
+  ratings,
+} from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -309,3 +320,250 @@ export class MemStorage implements IStorage {
     return sum / ratings.length;
   }
 }
+
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        ...user,
+        phone: user.phone ?? null,
+      })
+      .returning();
+    return newUser;
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || null;
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || null;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser || null;
+  }
+
+  // Business operations
+  async createBusiness(business: InsertBusiness & { userId: string }): Promise<Business> {
+    const [newBusiness] = await db
+      .insert(businesses)
+      .values({
+        ...business,
+        phone: business.phone ?? null,
+        description: business.description ?? null,
+        isVerified: business.isVerified ?? false,
+        bCoinRate: business.bCoinRate ?? "5.00",
+      })
+      .returning();
+    return newBusiness;
+  }
+
+  async getBusinessById(id: string): Promise<Business | null> {
+    const [business] = await db.select().from(businesses).where(eq(businesses.id, id));
+    return business || null;
+  }
+
+  async getBusinessesByUserId(userId: string): Promise<Business[]> {
+    return await db.select().from(businesses).where(eq(businesses.userId, userId));
+  }
+
+  async getBusinessesByCategory(category: string): Promise<Business[]> {
+    return await db.select().from(businesses).where(eq(businesses.category, category));
+  }
+
+  async getBusinessesByPincode(pincode: string): Promise<Business[]> {
+    return await db.select().from(businesses).where(eq(businesses.pincode, pincode));
+  }
+
+  async updateBusiness(id: string, updates: Partial<Business>): Promise<Business | null> {
+    const [updatedBusiness] = await db
+      .update(businesses)
+      .set(updates)
+      .where(eq(businesses.id, id))
+      .returning();
+    return updatedBusiness || null;
+  }
+
+  // Bundle operations
+  async createBundle(bundle: InsertBundle): Promise<Bundle> {
+    const [newBundle] = await db
+      .insert(bundles)
+      .values({
+        ...bundle,
+        description: bundle.description ?? null,
+        isActive: bundle.isActive ?? true,
+      })
+      .returning();
+    return newBundle;
+  }
+
+  async getBundleById(id: string): Promise<Bundle | null> {
+    const [bundle] = await db.select().from(bundles).where(eq(bundles.id, id));
+    return bundle || null;
+  }
+
+  async getBundlesByPincode(pincode: string): Promise<Bundle[]> {
+    return await db.select().from(bundles).where(eq(bundles.pincode, pincode));
+  }
+
+  async getAllBundles(): Promise<Bundle[]> {
+    return await db.select().from(bundles);
+  }
+
+  async addBusinessToBundle(bundleId: string, businessId: string): Promise<BundleMembership> {
+    const [membership] = await db
+      .insert(bundleMemberships)
+      .values({ bundleId, businessId })
+      .returning();
+    return membership;
+  }
+
+  async getBundleBusinesses(bundleId: string): Promise<Business[]> {
+    const businessesInBundle = await db
+      .select({ business: businesses })
+      .from(bundleMemberships)
+      .innerJoin(businesses, eq(bundleMemberships.businessId, businesses.id))
+      .where(eq(bundleMemberships.bundleId, bundleId));
+    
+    return businessesInBundle.map(item => item.business);
+  }
+
+  async getBusinessBundles(businessId: string): Promise<Bundle[]> {
+    const bundlesForBusiness = await db
+      .select({ bundle: bundles })
+      .from(bundleMemberships)
+      .innerJoin(bundles, eq(bundleMemberships.bundleId, bundles.id))
+      .where(eq(bundleMemberships.businessId, businessId));
+    
+    return bundlesForBusiness.map(item => item.bundle);
+  }
+
+  // B-Coin transaction operations
+  async createBCoinTransaction(transaction: InsertBCoinTransaction): Promise<BCoinTransaction> {
+    const [newTransaction] = await db
+      .insert(bCoinTransactions)
+      .values({
+        ...transaction,
+        description: transaction.description ?? null,
+        qrCodeId: transaction.qrCodeId ?? null,
+      })
+      .returning();
+    return newTransaction;
+  }
+
+  async getBCoinTransactionsByCustomer(customerId: string): Promise<BCoinTransaction[]> {
+    return await db
+      .select()
+      .from(bCoinTransactions)
+      .where(eq(bCoinTransactions.customerId, customerId))
+      .orderBy(desc(bCoinTransactions.createdAt));
+  }
+
+  async getBCoinTransactionsByBusiness(businessId: string): Promise<BCoinTransaction[]> {
+    return await db
+      .select()
+      .from(bCoinTransactions)
+      .where(eq(bCoinTransactions.businessId, businessId))
+      .orderBy(desc(bCoinTransactions.createdAt));
+  }
+
+  async getCustomerBCoinBalance(customerId: string): Promise<number> {
+    const transactions = await this.getBCoinTransactionsByCustomer(customerId);
+    return transactions.reduce((balance, transaction) => {
+      return balance + parseFloat(transaction.bCoinsChanged.toString());
+    }, 0);
+  }
+
+  // QR Code operations
+  async createQrCode(qrCode: InsertQrCode): Promise<QrCode> {
+    const [newQrCode] = await db
+      .insert(qrCodes)
+      .values({
+        ...qrCode,
+        description: qrCode.description ?? null,
+        expiresAt: qrCode.expiresAt ?? null,
+        isUsed: false,
+        usedBy: null,
+        usedAt: null,
+      })
+      .returning();
+    return newQrCode;
+  }
+
+  async getQrCodeById(id: string): Promise<QrCode | null> {
+    const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.id, id));
+    return qrCode || null;
+  }
+
+  async getQrCodesByBusiness(businessId: string): Promise<QrCode[]> {
+    return await db
+      .select()
+      .from(qrCodes)
+      .where(eq(qrCodes.businessId, businessId))
+      .orderBy(desc(qrCodes.createdAt));
+  }
+
+  async useQrCode(id: string, customerId: string): Promise<QrCode | null> {
+    const [updatedQrCode] = await db
+      .update(qrCodes)
+      .set({
+        isUsed: true,
+        usedBy: customerId,
+        usedAt: new Date(),
+      })
+      .where(and(eq(qrCodes.id, id), eq(qrCodes.isUsed, false)))
+      .returning();
+    
+    return updatedQrCode || null;
+  }
+
+  // Rating operations
+  async createRating(rating: InsertRating): Promise<Rating> {
+    const [newRating] = await db
+      .insert(ratings)
+      .values({
+        ...rating,
+        review: rating.review ?? null,
+      })
+      .returning();
+    return newRating;
+  }
+
+  async getRatingsByBusiness(businessId: string): Promise<Rating[]> {
+    return await db
+      .select()
+      .from(ratings)
+      .where(eq(ratings.businessId, businessId))
+      .orderBy(desc(ratings.createdAt));
+  }
+
+  async getRatingsByCustomer(customerId: string): Promise<Rating[]> {
+    return await db
+      .select()
+      .from(ratings)
+      .where(eq(ratings.customerId, customerId))
+      .orderBy(desc(ratings.createdAt));
+  }
+
+  async getBusinessAverageRating(businessId: string): Promise<number> {
+    const businessRatings = await this.getRatingsByBusiness(businessId);
+    if (businessRatings.length === 0) return 0;
+    
+    const sum = businessRatings.reduce((total, rating) => total + rating.rating, 0);
+    return sum / businessRatings.length;
+  }
+}
+
+// Use database storage by default
+export const storage = new DatabaseStorage();

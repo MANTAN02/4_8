@@ -1,13 +1,16 @@
 import express from "express";
 import { createRouter } from "./routes";
-import { MemStorage } from "./storage";
+import { DatabaseStorage } from "./storage";
 
 async function createServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
   // Storage instance
-  const storage = new MemStorage();
+  const storage = new DatabaseStorage();
+  
+  // Make storage available to middleware
+  app.locals.storage = storage;
 
   // Body parsing middleware
   app.use(express.json());
