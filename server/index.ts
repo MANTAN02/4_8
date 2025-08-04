@@ -53,7 +53,16 @@ async function createServer() {
     const vite = await import("vite");
     const path = await import("path");
     const viteServer = await vite.createServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        host: "0.0.0.0",
+        allowedHosts: [
+          "localhost",
+          ".replit.app", 
+          ".replit.dev",
+          ".spock.replit.dev"
+        ]
+      },
       appType: "spa",
       root: "./client",
       resolve: {
