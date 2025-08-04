@@ -12,9 +12,19 @@ export const queryClient = new QueryClient({
 // Default fetcher for React Query
 export const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
   const url = queryKey[0] as string;
-  const response = await fetch(url);
+  const token = localStorage.getItem("auth_token");
+  
+  const response = await fetch(url, {
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
   
   if (!response.ok) {
+    // Don't throw error for auth endpoints to allow graceful handling
+    if (response.status === 401 && url.includes('/api/users/me')) {
+      return null;
+    }
     throw new Error(`Request failed: ${response.statusText}`);
   }
   
@@ -23,9 +33,12 @@ export const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[
 
 // API request helper for mutations
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem("auth_token");
+  
   const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
     ...options,

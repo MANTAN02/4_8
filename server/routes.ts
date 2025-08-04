@@ -63,6 +63,22 @@ export function createRouter(storage: IStorage) {
     }
   });
 
+  // Get current user profile
+  router.get("/api/users/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get user profile" });
+    }
+  });
+
   router.post("/api/auth/change-password", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const { currentPassword, newPassword } = req.body;
@@ -79,22 +95,6 @@ export function createRouter(storage: IStorage) {
       res.json(result);
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Password change failed" });
-    }
-  });
-
-  // User routes
-  router.get("/api/users/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const user = await storage.getUserById(req.user!.id);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
     }
   });
 

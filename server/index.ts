@@ -1,5 +1,5 @@
 import express from "express";
-import { createRouter } from "./routes";
+import { createRouter } from "./simple-routes";
 import { DatabaseStorage } from "./storage";
 
 async function createServer() {

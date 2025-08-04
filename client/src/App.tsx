@@ -1,29 +1,69 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Route, Switch } from "wouter";
 import { queryClient } from "@/lib/queryClient";
-import Home from "@/pages/Home";
-import CustomerLogin from "@/pages/CustomerLogin";
+import { useAuth } from "@/hooks/useAuth";
+import { Navigation } from "@/components/Navigation";
+import { Toaster } from "@/components/ui/toaster";
+import { useState, useEffect } from "react";
+
+// Pages
+import LandingPage from "@/pages/LandingPage";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import CustomerDashboard from "@/pages/CustomerDashboard";
+import BusinessDashboard from "@/pages/BusinessDashboard";
+import ExploreBusiness from "@/pages/ExploreBusiness";
+import QRScanner from "@/pages/QRScanner";
+import QRCodes from "@/pages/QRCodes";
+import NotFound from "@/pages/NotFound";
+
+function AppRouter() {
+  const { data: user, isLoading } = useAuth();
+
+  // Don't show loading spinner for too long - show content after 2 seconds
+  const [showContent, setShowContent] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setShowContent(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading && !showContent) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Navigation />
+      <Switch>
+        {/* Public Routes */}
+        <Route path="/" component={user ? (user.userType === "customer" ? CustomerDashboard : BusinessDashboard) : LandingPage} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/explore" component={ExploreBusiness} />
+        
+        {/* Protected Routes */}
+        <Route path="/dashboard" component={user?.userType === "customer" ? CustomerDashboard : () => <div>Access Denied</div>} />
+        <Route path="/business-dashboard" component={user?.userType === "business" ? BusinessDashboard : () => <div>Access Denied</div>} />
+        <Route path="/scanner" component={user?.userType === "customer" ? QRScanner : () => <div>Access Denied</div>} />
+        <Route path="/qr-codes" component={user?.userType === "business" ? QRCodes : () => <div>Access Denied</div>} />
+        
+        {/* 404 Route */}
+        <Route component={NotFound} />
+      </Switch>
+      <Toaster />
+    </div>
+  );
+}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background text-foreground">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/customer-login" component={CustomerLogin} />
-          <Route>
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
-                <p className="text-gray-600 mb-8">The page you're looking for doesn't exist.</p>
-                <a href="/" className="text-orange-600 hover:text-orange-700 underline">
-                  Go back home
-                </a>
-              </div>
-            </div>
-          </Route>
-        </Switch>
-      </div>
+      <AppRouter />
     </QueryClientProvider>
   );
 }
