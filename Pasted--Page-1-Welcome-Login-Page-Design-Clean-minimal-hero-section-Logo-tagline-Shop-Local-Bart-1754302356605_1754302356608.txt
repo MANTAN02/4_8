@@ -1,0 +1,111 @@
+ Page 1 – Welcome/Login Page
+Design:
+
+Clean, minimal hero section
+
+Logo + tagline: “Shop Local. Barter Better. Earn B-Coins.”
+
+Two buttons:
+
+🔵 Login as Customer
+
+🟠 Login as Business
+
+🔑 Page 2A – Customer Login / Signup
+Email or phone number + OTP or password
+
+Option to register as new customer
+
+Redirect to Customer Dashboard after login
+
+🧾 Page 2B – Business Login / Signup
+Business Name, Owner Name, Pincode, Category (select from dropdown of 10 predefined categories):
+
+Kirana / Grocery
+
+Electronics / Gadgets
+
+Clothing Store
+
+Food / Restaurant
+
+Salon / Beauty
+
+Footwear
+
+Cafe / Ice Cream
+
+Gift / Toy
+
+Medicine / Wellness
+
+Stationery / School
+
+Accept terms of being part of 1-category-per-bundle system
+
+Redirect to Merchant Dashboard after signup
+
+🧍‍♂️ Customer Dashboard (Post Login)
+Main Features:
+
+View nearby Baartal bundles (based on pincode or location)
+
+See B-Coin balance
+
+See history of shops visited and B-Coins earned/spent
+
+Scan QR code at merchant shop to earn B-Coins
+
+Option to rate the shop and get bonus B-Coins
+
+Explore shop categories in their bundle:
+
+Kirana | Food | Saloon | Clothing | Electronics | etc.
+
+🛍️ Merchant Dashboard (Post Login)
+Main Features:
+
+Overview: Total B-Coins issued, redeemed, total customers gained
+
+Add/Update Store Info: Category, Offers, Shop Photos
+
+Issue B-Coins to customer manually or via QR
+
+View bundle partners (other shops in the bundle)
+
+Analytics: Customer visits, top days, B-Coin usage
+
+“Featured this week?” toggle for visibility
+
+Notifications: New customers, offers to approve, promo suggestions
+
+🌐 Additional Pages to Generate
+About Baartal – Story, mission, Mumbai focus
+
+FAQ – How bundles work, what are B-Coins, rules for merchants
+
+Contact – Email, WhatsApp support button
+
+Privacy Policy / Terms of Use
+
+🎨 Style Instructions
+Clean, mobile-first UI
+
+Warm colors: Orange (#FF6F00), Deep Blue (#102A43), cream background
+
+Rounded corners, icons for each shop type
+
+Hindi/English mixed friendly language
+
+Include local feel (e.g., illustrations of Indian shops, autos, barbershops)
+
+🔁 Tech Features (Optional / Advanced)
+QR code generator for shop
+
+Location-based shop discovery
+
+Wallet-style B-Coin tracking for customers
+
+Admin dashboard (for Baartal to manage shops and bundles)
+
+Bundle lock: Only 1 merchant per category per region

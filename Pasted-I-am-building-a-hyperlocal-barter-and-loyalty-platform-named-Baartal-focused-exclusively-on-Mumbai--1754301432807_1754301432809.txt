@@ -1,0 +1,141 @@
+I am building a hyperlocal barter and loyalty platform named Baartal, focused exclusively on Mumbai. The platform connects local businesses into curated "barter bundles" and lets customers earn and spend B-Coins (Baartal Coins) across those shops. Please generate a modern, professional, and mobile-first website that communicates the concept clearly, builds trust with merchants, and encourages both customers and businesses to join. The design should reflect simplicity, locality, trust, and movement (symbolizing exchange and flow).
+
+🎯 Website Objectives:
+Explain how Baartal works (for both merchants and customers)
+
+Showcase regional bundles of local businesses
+
+Drive signups for shopkeepers across Mumbai
+
+Introduce B-Coins — our internal loyalty currency
+
+Build credibility and excitement around the barter model
+
+🧱 Website Structure:
+1. Homepage Hero Section
+Tagline: “Barter Smarter. Earn & Spend B-Coins Across Mumbai.”
+
+Subtext: “Join a bundle of trusted neighborhood businesses and grow together through barter and loyalty.”
+
+CTA Buttons:
+
+“Join as Business”
+
+“Explore Baartal Bundles”
+
+Background: A visual/illustration of people shopping locally or exchanging services
+
+2. How Baartal Works – for Customers
+3-step illustrated flow:
+
+Shop at a Baartal-listed business
+
+Earn B-Coins with every bill (like cashback)
+
+Use those B-Coins in any other bundle shop
+
+Benefits: “Save more. Discover more. Support local.”
+
+3. How Baartal Works – for Businesses
+Explain the exclusive bundle concept (only 1 shop per category in each region)
+
+Explain B2B barter capabilities: e.g., a salon exchanges service for ad space
+
+Explain B-Coin loyalty system: “Offer customers B-Coins instead of discounts. They return or explore partners.”
+
+Fee Model:
+
+"Pay only when a customer uses B-Coins"
+
+"More generous you are, less you pay"
+
+"0 upfront cost"
+
+CTA: “Apply to Join Your Area’s Bundle”
+
+4. Why Merchants Love Baartal
+Benefits listed in icons or cards:
+
+✅ Free promotion through local bundle shops
+
+✅ Repeat customers via B-Coin loyalty
+
+✅ No risk — pay-per-use model
+
+✅ Social media + WhatsApp exposure
+
+✅ Community support & exclusive local presence
+
+5. Explore Bundles by Region
+Map view or list of 50 Mumbai regions
+
+Each region shows:
+
+Bundle name (e.g., Andheri West Circle)
+
+Participating businesses (name, category, address, B-Coin offers)
+
+"Join This Bundle" button if a category slot is still open
+
+6. B-Coins Loyalty Program
+“B-Coins are your new local loyalty currency”
+
+Earned when you pay
+
+Redeemable in other shops in your bundle
+
+Never expires, can be saved or shared
+
+CTA: “Start Earning B-Coins”
+
+7. Merchant Testimonials (Placeholder Section)
+2–3 testimonial boxes with photos, shop name, and quote
+
+e.g., “I joined Baartal and got 20 new customers in a month — all from my own area!”
+
+8. Get Started – Join Baartal
+Split into two columns:
+
+For Business Owners:
+
+Form fields: Business Name, Owner Name, Contact, Category, Pincode
+
+CTA: “Join Baartal Bundle”
+
+For Customers:
+
+Subscribe with email or phone
+
+CTA: “Discover Bundles Near You”
+
+Link to join Baartal WhatsApp Channel
+
+9. Footer
+About Us
+
+Instagram & WhatsApp links
+
+Terms of Use
+
+Privacy Policy
+
+“Proudly built in Mumbai 🇮🇳”
+
+🎨 Design Preferences:
+Colors: Orange (#FF6F00), Deep Blue (#102A43), Cream or White backgrounds
+
+Fonts: Modern sans-serif (Inter, Poppins, or Manrope)
+
+Style: Clean, local-urban, community-first
+
+Icons: Use Indian-style minimal icons where possible (e.g. kirana, chai, auto, etc.)
+
+Mobile-First: All CTAs and interactions must work smoothly on phones
+
+📱 Tech Features (Optional)
+QR-based B-Coin redemption workflow (mocked)
+
+Option to send merchant signup form to WhatsApp
+
+Expandable region/bundle pages as you scale
+

@@ -1,0 +1,193 @@
+Build the entire backend logic for Baartal, a hyperlocal barter and B-Coin loyalty platform connecting businesses and customers within specific regions (pincodes) of Mumbai. The backend must handle:
+
+Role-based authentication (Customer vs Merchant)
+
+Region-based bundle logic
+
+B-Coin wallet system (earn/spend across shops)
+
+QR code generation and validation
+
+Bundle locking (one merchant per category per region)
+
+Merchant analytics
+
+🗃️ DATABASE STRUCTURE:
+1. Users
+user_id (UUID)
+
+email_or_phone
+
+password_hash
+
+role → "customer" | "merchant" | "admin"
+
+created_at
+
+last_login
+
+2. Merchants
+merchant_id (UUID)
+
+user_id (FK)
+
+business_name
+
+category (Enum: grocery, saloon, etc.)
+
+pincode
+
+address
+
+bcoin_issue_rate (e.g. 10 B-Coins per ₹100)
+
+bcoin_wallet_balance
+
+qr_code_url
+
+bundle_id (FK)
+
+approved (boolean)
+
+3. Customers
+customer_id (UUID)
+
+user_id (FK)
+
+bcoin_balance
+
+pincode
+
+recent_activity
+
+4. Bundles
+bundle_id (UUID)
+
+region_name
+
+pincode
+
+shops (Array of merchant_id)
+
+shop_categories (Array of strings — only 1 per category allowed)
+
+status (active / inactive)
+
+5. Transactions
+txn_id (UUID)
+
+customer_id (FK)
+
+merchant_id (FK)
+
+amount (₹)
+
+bcoins_earned
+
+bcoins_spent
+
+type → "earn" | "spend"
+
+timestamp
+
+6. Admin_Approvals
+approval_id
+
+merchant_id
+
+status ("pending", "approved", "rejected")
+
+notes
+
+🔄 BACKEND LOGIC FLOWS
+✅ 1. User Authentication
+Register/Login using email or phone
+
+Token-based session management
+
+Role-based redirection (Customer → Customer Dashboard; Merchant → Merchant Dashboard)
+
+✅ 2. Merchant Onboarding
+On signup:
+
+Check if bundle exists for given pincode
+
+Check if the merchant’s category already exists in that bundle
+
+If not, auto-create bundle or assign merchant
+
+Auto-generate unique QR for the merchant (QR links to /scan/{merchant_id})
+
+Send for admin approval
+
+✅ 3. QR Scan Logic (Customer Action)
+When customer scans merchant QR:
+
+Validate QR
+
+Record scan
+
+Ask merchant to enter bill amount
+
+Calculate B-Coins (e.g. 5% of bill amount)
+
+Add B-Coins to customer wallet
+
+Log transaction as "earn"
+
+✅ 4. B-Coin Spend Logic
+Customer chooses to spend B-Coins at a shop
+
+Merchant confirms redemption via dashboard
+
+B-Coins deducted from customer wallet
+
+B-Coins added to merchant’s internal ledger
+
+Log transaction as "spend"
+
+✅ 5. Bundle Locking Logic
+On merchant registration or update:
+
+Prevent two shops with same category in the same pincode/bundle
+
+If conflict, reject and suggest alternate bundle
+
+✅ 6. Merchant Analytics
+Total B-Coins issued
+
+Total redemptions
+
+Unique customers
+
+Weekly/monthly footfall (based on QR scans)
+
+Average bill amount (from B-Coin earning logs)
+
+✅ 7. Customer Wallet Overview
+B-Coin balance
+
+Full transaction history
+
+Bundle discovery (shops near current location or pincode)
+
+⚙️ OPTIONAL BACKEND LOGIC
+Limit B-Coins usage per bill (e.g., max 20% bill)
+
+Bonus B-Coins on referrals
+
+Expiry timer on B-Coins (e.g., 60 days)
+
+Webhook to notify merchant via WhatsApp
+
+Admin override system (issue/withdraw B-Coins manually)
+
+💾 INTEGRATION READY
+API structure (REST or GraphQL)
+
+Backend compatibility with Bubble, Xano, Supabase, Firebase, or Express.js
+
+JWT-based auth system
+
+QR Code generation via backend or third-party (e.g., Google Chart API)
+
