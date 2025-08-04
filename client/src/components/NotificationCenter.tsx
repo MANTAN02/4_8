@@ -1,112 +1,146 @@
 import { useState } from 'react';
-import { Bell, X, Check, CheckCheck } from 'lucide-react';
+import { X, Bell, Check, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { formatDistanceToNow } from 'date-fns';
-import type { Notification } from '@shared/schema';
+import { useToast } from '@/hooks/use-toast';
+import { formatDistance } from 'date-fns';
 
 interface NotificationCenterProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface Notification {
+  id: string;
+  type: 'transaction' | 'system' | 'business' | 'customer';
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  actionUrl?: string;
+}
+
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
+  // Fetch notifications
+  const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['/api/notifications', filter],
-    queryFn: () => apiRequest(`/api/notifications?unreadOnly=${filter === 'unread'}`),
+    queryFn: () => apiRequest(`/api/notifications${filter === 'unread' ? '?unreadOnly=true' : ''}`),
     enabled: isOpen,
+    refetchInterval: 30000,
   });
 
+  // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/notifications/${id}/read`, { method: 'POST' }),
+    mutationFn: (notificationId: string) => 
+      apiRequest(`/api/notifications/${notificationId}/read`, { method: 'PATCH' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
   });
 
+  // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => apiRequest('/api/notifications/mark-all-read', { method: 'POST' }),
+    mutationFn: () => apiRequest('/api/notifications/read-all', { method: 'PATCH' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      toast({
+        title: 'All notifications marked as read',
+      });
     },
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  // Delete notification mutation
+  const deleteNotificationMutation = useMutation({
+    mutationFn: (notificationId: string) => 
+      apiRequest(`/api/notifications/${notificationId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      toast({
+        title: 'Notification deleted',
+      });
+    },
+  });
+
+  const handleMarkAsRead = (notificationId: string) => {
+    markAsReadMutation.mutate(notificationId);
+  };
+
+  const handleDelete = (notificationId: string) => {
+    deleteNotificationMutation.mutate(notificationId);
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'bcoin_earned':
-        return '🪙';
-      case 'qr_scanned':
-        return '📱';
-      case 'business_created':
+      case 'transaction':
+        return '💰';
+      case 'business':
         return '🏪';
-      case 'rating_received':
-        return '⭐';
-      case 'system':
-        return '🎉';
+      case 'customer':
+        return '👤';
       default:
-        return '📢';
+        return '🔔';
     }
   };
 
   const getNotificationColor = (type: string) => {
     switch (type) {
-      case 'bcoin_earned':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'qr_scanned':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'business_created':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'rating_received':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'system':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      case 'transaction':
+        return 'border-l-green-500';
+      case 'business':
+        return 'border-l-blue-500';
+      case 'customer':
+        return 'border-l-purple-500';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+        return 'border-l-gray-500';
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50" data-testid="notification-center">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-background border-l shadow-xl">
+    <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose}>
+      <div 
+        className="fixed right-0 top-0 h-full w-full max-w-md bg-background border-l shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              <h2 className="text-lg font-semibold">Notifications</h2>
-              {unreadCount > 0 && (
-                <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
-                  {unreadCount}
-                </Badge>
-              )}
+          <div className="flex items-center justify-between p-6 border-b">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-orange-600" />
+              <h2 className="text-xl font-semibold">Notifications</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} data-testid="button-close-notifications">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              data-testid="close-notifications"
+            >
               <X className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Filter */}
-          <div className="flex gap-2 p-4 border-b">
+          {/* Filter Tabs */}
+          <div className="flex p-4 gap-2 border-b">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('all')}
-              data-testid="button-filter-all"
+              data-testid="filter-all"
             >
               All
             </Button>
@@ -114,111 +148,122 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               variant={filter === 'unread' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter('unread')}
-              data-testid="button-filter-unread"
+              data-testid="filter-unread"
             >
-              Unread ({unreadCount})
+              Unread
+              {notifications.filter((n: Notification) => !n.isRead).length > 0 && (
+                <Badge className="ml-2 h-5 w-5 p-0 bg-orange-600">
+                  {notifications.filter((n: Notification) => !n.isRead).length}
+                </Badge>
+              )}
             </Button>
-            
-            {unreadCount > 0 && (
+          </div>
+
+          {/* Actions */}
+          {notifications.length > 0 && (
+            <div className="p-4 border-b">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => markAllAsReadMutation.mutate()}
                 disabled={markAllAsReadMutation.isPending}
-                className="ml-auto"
-                data-testid="button-mark-all-read"
+                data-testid="mark-all-read"
               >
-                <CheckCheck className="w-4 h-4 mr-1" />
+                <Check className="w-4 h-4 mr-2" />
                 Mark All Read
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Notifications */}
+          {/* Notifications List */}
           <ScrollArea className="flex-1">
-            {isLoading ? (
-              <div className="p-4 space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center">
-                <Bell className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No notifications</h3>
-                <p className="text-sm text-muted-foreground">
-                  {filter === 'unread' ? 'All caught up! No unread notifications.' : "You don't have any notifications yet."}
-                </p>
-              </div>
-            ) : (
-              <div className="p-4 space-y-2">
-                {notifications.map((notification) => (
+            <div className="p-4 space-y-4">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="text-center py-8">
+                  <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
+                  </p>
+                </div>
+              ) : (
+                notifications.map((notification: Notification) => (
                   <Card
                     key={notification.id}
-                    className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                      !notification.isRead ? 'border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/50' : ''
+                    className={`border-l-4 ${getNotificationColor(notification.type)} ${
+                      !notification.isRead ? 'bg-orange-50/50 dark:bg-orange-950/20' : ''
                     }`}
-                    onClick={() => !notification.isRead && markAsReadMutation.mutate(notification.id)}
                     data-testid={`notification-${notification.id}`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${getNotificationColor(notification.type)}`}>
-                          {getNotificationIcon(notification.type)}
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">
+                            {getNotificationIcon(notification.type)}
+                          </span>
+                          <div className="flex-1">
+                            <CardTitle className="text-sm font-medium">
+                              {notification.title}
+                              {!notification.isRead && (
+                                <Badge className="ml-2 h-4 w-4 p-0 bg-orange-600"></Badge>
+                              )}
+                            </CardTitle>
+                            <CardDescription className="text-xs text-muted-foreground">
+                              {formatDistance(new Date(notification.createdAt), new Date(), { addSuffix: true })}
+                            </CardDescription>
+                          </div>
                         </div>
                         
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-medium text-sm leading-tight">
-                              {notification.title}
-                            </h4>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
                             {!notification.isRead && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  markAsReadMutation.mutate(notification.id);
-                                }}
-                                disabled={markAsReadMutation.isPending}
-                                className="p-1 h-6 w-6"
-                                data-testid={`button-mark-read-${notification.id}`}
+                              <DropdownMenuItem
+                                onClick={() => handleMarkAsRead(notification.id)}
+                                data-testid={`mark-read-${notification.id}`}
                               >
-                                <Check className="w-3 h-3" />
-                              </Button>
+                                <Check className="w-4 h-4 mr-2" />
+                                Mark as Read
+                              </DropdownMenuItem>
                             )}
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                            {notification.message}
-                          </p>
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                            </p>
-                            
-                            {notification.isRead && (
-                              <Badge variant="secondary" className="text-xs">
-                                Read
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(notification.id)}
+                              className="text-red-600"
+                              data-testid={`delete-${notification.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-sm text-muted-foreground">
+                        {notification.message}
+                      </p>
+                      {notification.actionUrl && (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0 h-auto text-orange-600 hover:text-orange-700"
+                          data-testid={`action-${notification.id}`}
+                        >
+                          View Details →
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </ScrollArea>
         </div>
       </div>

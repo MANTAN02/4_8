@@ -1,303 +1,329 @@
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Coins, 
-  Store, 
-  Users, 
-  QrCode, 
-  Star, 
-  MapPin, 
-  ArrowRight, 
-  Shield,
-  Zap,
-  Heart
-} from "lucide-react";
+import { useState } from 'react';
+import { Link } from 'wouter';
+import { ArrowRight, Coins, QrCode, Star, TrendingUp, Users, Shield, Zap, Globe, Award, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function LandingPage() {
-  const [, setLocation] = useLocation();
+  const [activeFeature, setActiveFeature] = useState(0);
 
   const features = [
     {
-      icon: <Coins className="w-6 h-6 text-orange-600" />,
-      title: "Earn B-Coins",
-      description: "Shop at local businesses and earn B-Coins with every purchase. Use them for discounts and special offers."
+      icon: <Coins className="w-6 h-6" />,
+      title: "B-Coin Rewards",
+      description: "Earn loyalty coins with every purchase. Convert to real savings.",
+      color: "from-yellow-500 to-amber-600"
     },
     {
-      icon: <QrCode className="w-6 h-6 text-orange-600" />,
-      title: "QR Code Transactions",
-      description: "Simple and fast transactions using QR codes. No cash, no cards - just scan and earn."
+      icon: <QrCode className="w-6 h-6" />,
+      title: "Instant QR Scanning",
+      description: "Quick, secure transactions with mobile camera scanning.",
+      color: "from-blue-500 to-cyan-600"
     },
     {
-      icon: <Store className="w-6 h-6 text-orange-600" />,
-      title: "Local Business Network",
-      description: "Discover amazing local businesses in Mumbai and support your community."
+      icon: <Users className="w-6 h-6" />,
+      title: "Local Community",
+      description: "Connect with verified Mumbai businesses in your area.",
+      color: "from-purple-500 to-indigo-600"
     },
     {
-      icon: <Users className="w-6 h-6 text-orange-600" />,
-      title: "Community Bundles",
-      description: "Join local community groups and enjoy exclusive offers from bundle partners."
-    },
-    {
-      icon: <Star className="w-6 h-6 text-orange-600" />,
-      title: "Reviews & Ratings",
-      description: "Rate and review businesses to help others discover the best local spots."
-    },
-    {
-      icon: <MapPin className="w-6 h-6 text-orange-600" />,
-      title: "Hyperlocal Focus",
-      description: "Exclusively serving Mumbai with deep local knowledge and connections."
+      icon: <TrendingUp className="w-6 h-6" />,
+      title: "Business Growth",
+      description: "Advanced analytics and customer insights for businesses.",
+      color: "from-green-500 to-emerald-600"
     }
+  ];
+
+  const stats = [
+    { number: "10,000+", label: "Active Users", icon: <Users className="w-5 h-5" /> },
+    { number: "500+", label: "Partner Businesses", icon: <Globe className="w-5 h-5" /> },
+    { number: "₹50L+", label: "Transactions", icon: <TrendingUp className="w-5 h-5" /> },
+    { number: "4.9★", label: "User Rating", icon: <Star className="w-5 h-5" /> }
   ];
 
   const testimonials = [
     {
       name: "Priya Sharma",
+      role: "Small Business Owner",
+      content: "Baartal increased my customer retention by 300%. The B-Coin system is revolutionary!",
+      rating: 5,
+      location: "Andheri, Mumbai"
+    },
+    {
+      name: "Rajesh Kumar",
       role: "Regular Customer",
-      content: "I've earned over 500 B-Coins shopping at my favorite local stores. It's amazing how much I save!",
-      rating: 5
+      content: "I've saved over ₹15,000 using B-Coins. Best loyalty platform in Mumbai!",
+      rating: 5,
+      location: "Bandra, Mumbai"
     },
     {
-      name: "Rajesh Patel",
+      name: "Meera Patel",
       role: "Restaurant Owner",
-      content: "Baartal brought 40% more customers to my restaurant. The QR code system is so easy to use.",
-      rating: 5
-    },
-    {
-      name: "Meera Singh",
-      role: "Community Member",
-      content: "Love discovering new businesses in my area through Baartal's community bundles.",
-      rating: 5
+      content: "Real-time analytics help me understand my customers better. Revenue up 40%!",
+      rating: 5,
+      location: "Juhu, Mumbai"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-orange-50 to-orange-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <div className="mx-auto mb-8 w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">B</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Welcome to <span className="text-orange-600">Baartal</span>
+      <section className="relative pt-20 pb-16 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/10 to-amber-600/10 dark:from-orange-400/5 dark:to-amber-400/5"></div>
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-orange-100 text-orange-800 hover:bg-orange-200" data-testid="badge-beta">
+              🚀 Now Live in Mumbai
+            </Badge>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              Mumbai's #1 Loyalty Platform
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Mumbai's premier hyperlocal platform connecting customers with local businesses through B-Coin rewards and community engagement
+            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+              Earn B-Coins at local businesses, get real rewards, and support your community. 
+              <span className="font-semibold text-orange-600"> Join 10,000+ Mumbai residents!</span>
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-orange-600 hover:bg-orange-700 text-lg px-8"
-                onClick={() => setLocation("/register")}
-              >
-                Get Started
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="text-lg px-8"
-                onClick={() => setLocation("/login")}
-              >
-                Sign In
-              </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link href="/register">
+                <Button size="lg" className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300" data-testid="button-get-started">
+                  Get Started Free
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/explore">
+                <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="button-explore-businesses">
+                  Explore Businesses
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+              {stats.map((stat, index) => (
+                <Card key={index} className="border-0 shadow-lg bg-white/70 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                  <CardContent className="p-6 text-center">
+                    <div className="flex justify-center mb-2 text-orange-600">
+                      {stat.icon}
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.number}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Features Section */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 px-4 bg-white/50 dark:bg-gray-800/50">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Baartal?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience the future of local commerce with our innovative B-Coin loyalty system
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">Why Choose Baartal?</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Experience the future of local commerce with cutting-edge technology
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-2 hover:border-orange-200 transition-colors">
-                <CardHeader>
-                  <div className="flex items-center space-x-3">
+              <Card 
+                key={index} 
+                className={`group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
+                  activeFeature === index ? 'ring-2 ring-orange-500 shadow-xl scale-105' : ''
+                }`}
+                onMouseEnter={() => setActiveFeature(index)}
+                data-testid={`feature-card-${index}`}
+              >
+                <CardHeader className="text-center">
+                  <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
                   </div>
+                  <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                  <CardDescription className="text-base">{feature.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-600">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* How It Works Section */}
-      <div className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* How It Works */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              How Baartal Works
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Three simple steps to start earning B-Coins and supporting local businesses
-            </p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">How It Works</h2>
+            <p className="text-xl text-muted-foreground">Simple steps to start earning and saving</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="mx-auto mb-6 w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">1</span>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Sign Up Free",
+                description: "Create your account in under 30 seconds. No fees, no commitments.",
+                icon: <Users className="w-8 h-8" />
+              },
+              {
+                step: "2", 
+                title: "Scan & Earn",
+                description: "Shop at partner businesses and scan QR codes to earn B-Coins instantly.",
+                icon: <QrCode className="w-8 h-8" />
+              },
+              {
+                step: "3",
+                title: "Redeem Rewards",
+                description: "Use your B-Coins for discounts, exclusive offers, and real savings.",
+                icon: <Award className="w-8 h-8" />
+              }
+            ].map((step, index) => (
+              <div key={index} className="relative text-center group" data-testid={`step-${index}`}>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-orange-600 to-amber-600 flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform duration-300">
+                  {step.step}
+                </div>
+                <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
+                <p className="text-lg text-muted-foreground max-w-xs mx-auto">{step.description}</p>
+                
+                {index < 2 && (
+                  <ArrowRight className="hidden md:block absolute top-8 -right-4 w-8 h-8 text-orange-600/30" />
+                )}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Sign Up</h3>
-              <p className="text-gray-600">
-                Create your free account as a customer or business owner in just minutes
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="mx-auto mb-6 w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">2</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Shop Local</h3>
-              <p className="text-gray-600">
-                Visit participating businesses and scan QR codes to complete transactions
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="mx-auto mb-6 w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">3</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Earn Rewards</h3>
-              <p className="text-gray-600">
-                Automatically earn B-Coins with every purchase and redeem them for discounts
-              </p>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Testimonials Section */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Testimonials */}
+      <section className="py-20 px-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-900">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              What People Say
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join thousands of satisfied customers and business owners in Mumbai
-            </p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">What Mumbai Says</h2>
+            <p className="text-xl text-muted-foreground">Real stories from our community</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-2">
+              <Card key={index} className="bg-white/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300" data-testid={`testimonial-${index}`}>
                 <CardHeader>
-                  <div className="flex items-center space-x-1 mb-2">
+                  <div className="flex items-center gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
                     ))}
                   </div>
-                  <CardTitle className="text-lg">{testimonial.name}</CardTitle>
-                  <CardDescription>{testimonial.role}</CardDescription>
+                  <CardDescription className="text-lg italic">"{testimonial.content}"</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 italic">"{testimonial.content}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-orange-600 to-amber-600 flex items-center justify-center text-white font-bold">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-semibold">{testimonial.name}</div>
+                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                      <div className="text-xs text-orange-600">{testimonial.location}</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="py-20 bg-orange-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Join the Baartal Community?
-          </h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Start earning B-Coins today and discover the best local businesses in Mumbai
+      <section className="py-20 px-4 bg-gradient-to-r from-orange-600 to-amber-600 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Start Earning?</h2>
+          <p className="text-xl mb-8 opacity-90">
+            Join thousands of Mumbai residents already saving money with Baartal
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              variant="secondary"
-              className="text-lg px-8"
-              onClick={() => setLocation("/register")}
-            >
-              Join as Customer
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="text-lg px-8 border-white text-white hover:bg-white hover:text-orange-600"
-              onClick={() => setLocation("/register")}
-            >
-              Register Business
-            </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/register">
+              <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="button-join-now">
+                Join Now - It's Free!
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="button-sign-in">
+                Already a Member? Sign In
+              </Button>
+            </Link>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-8 text-center">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              <span>100% Secure</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5" />
+              <span>Instant Rewards</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              <span>10,000+ Users</span>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="py-12 px-4 bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">B</span>
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                Baartal
+              </h3>
+              <p className="text-gray-400 mb-4">Mumbai's premier loyalty platform connecting local businesses with customers.</p>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
+                  📱
                 </div>
-                <span className="text-xl font-bold">Baartal</span>
+                <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
+                  📧
+                </div>
+                <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
+                  🌐
+                </div>
               </div>
-              <p className="text-gray-400">
-                Mumbai's hyperlocal platform for B-Coin rewards and community commerce.
-              </p>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4">Features</h3>
+              <h4 className="font-semibold mb-4">Platform</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>B-Coin Rewards</li>
-                <li>QR Code Payments</li>
-                <li>Local Business Discovery</li>
-                <li>Community Bundles</li>
+                <li><Link href="/explore" className="hover:text-white transition-colors">Explore Businesses</Link></li>
+                <li><Link href="/register" className="hover:text-white transition-colors">Join as Customer</Link></li>
+                <li><Link href="/register" className="hover:text-white transition-colors">List Your Business</Link></li>
               </ul>
             </div>
-            
+
             <div>
-              <h3 className="font-semibold mb-4">For Business</h3>
+              <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Customer Acquisition</li>
-                <li>Loyalty Programs</li>
-                <li>Analytics Dashboard</li>
-                <li>Community Engagement</li>
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms & Privacy</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h4 className="font-semibold mb-4">Mumbai Areas</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Help Center</li>
-                <li>Contact Us</li>
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
+                <li>Andheri • Bandra • Juhu</li>
+                <li>Powai • Goregaon • Malad</li>
+                <li>Thane • Navi Mumbai</li>
+                <li><span className="text-orange-400">+ 25 more areas</span></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Baartal. All rights reserved. Made with ❤️ in Mumbai.</p>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 Baartal. Made with ❤️ in Mumbai. All rights reserved.</p>
           </div>
         </div>
       </footer>
