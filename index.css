@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(210, 11%, 15%);
+  --muted: hsl(36, 29%, 95%);
+  --muted-foreground: hsl(25, 5%, 45%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 11%, 15%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(210, 11%, 15%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --primary: hsl(210, 100%, 54%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(36, 29%, 95%);
+  --secondary-foreground: hsl(24, 10%, 10%);
+  --accent: hsl(36, 29%, 95%);
+  --accent-foreground: hsl(24, 10%, 10%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(60, 9%, 98%);
+  --ring: hsl(210, 11%, 15%);
+  --radius: 0.5rem;
+  
+  /* Baartal specific colors */
+  --baartal-orange: hsl(26, 100%, 50%);
+  --baartal-blue: hsl(210, 67%, 17%);
+  --baartal-cream: hsl(33, 73%, 97%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 4%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 4%, 16%);
+  --muted-foreground: hsl(240, 5%, 65%);
+  --popover: hsl(240, 10%, 4%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 4%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 4%, 16%);
+  --input: hsl(240, 4%, 16%);
+  --primary: hsl(210, 100%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 4%, 16%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 4%, 16%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 5%, 84%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Custom utilities for Baartal brand colors */
+.text-baartal-orange {
+  color: var(--baartal-orange);
+}
+
+.text-baartal-blue {
+  color: var(--baartal-blue);
+}
+
+.bg-baartal-orange {
+  background-color: var(--baartal-orange);
+}
+
+.bg-baartal-blue {
+  background-color: var(--baartal-blue);
+}
+
+.bg-baartal-cream {
+  background-color: var(--baartal-cream);
+}
+
+.border-baartal-orange {
+  border-color: var(--baartal-orange);
+}
+
+.border-baartal-blue {
+  border-color: var(--baartal-blue);
+}
+
+.hover\:bg-orange-600:hover {
+  background-color: hsl(21, 100%, 50%);
+}
+
+.hover\:bg-blue-800:hover {
+  background-color: hsl(210, 67%, 25%);
+}
+
+/* Custom animations and transitions */
+.transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+  .mobile-padding {
+    @apply px-4;
+  }
+  
+  .mobile-text-sm {
+    @apply text-sm;
+  }
+}
+
+/* QR Scanner specific styles */
+.qr-scanner-overlay {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qr-scanner-border {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border: 2px solid var(--baartal-orange);
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.qr-scanner-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--baartal-orange);
+}
+
+.qr-scanner-corner.top-left {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.qr-scanner-corner.top-right {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.qr-scanner-corner.bottom-left {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+}
+
+.qr-scanner-corner.bottom-right {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
