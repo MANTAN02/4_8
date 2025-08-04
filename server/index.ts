@@ -1,6 +1,8 @@
 import express from "express";
-import { createRouter } from "./simple-routes";
-import { DatabaseStorage } from "./storage";
+import { createServer as createHttpServer } from "http";
+import { createEnhancedRouter } from "./enhanced-routes";
+import { DatabaseStorage } from "./db-storage";
+import { initWebSocket } from "./websocket";
 
 async function createServer() {
   const app = express();
@@ -16,7 +18,7 @@ async function createServer() {
   app.use(express.json());
 
   // Add API routes
-  app.use(createRouter(storage));
+  app.use(createEnhancedRouter(storage));
 
   // In development, use Vite middleware for frontend
   if (process.env.NODE_ENV === "development") {
@@ -45,7 +47,12 @@ async function createServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const httpServer = createHttpServer(app);
+  
+  // Initialize WebSocket server
+  initWebSocket(httpServer);
+
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }

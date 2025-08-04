@@ -77,53 +77,43 @@ export const ratings = pgTable("ratings", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id").references(() => users.id).notNull(),
   businessId: uuid("business_id").references(() => businesses.id).notNull(),
-  rating: integer("rating").notNull(), // 1-5 scale
+  rating: integer("rating").notNull(), // 1-5 stars
   review: text("review"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  data: text("data"), // JSON string
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertBusinessSchema = createInsertSchema(businesses).omit({
-  id: true,
-  userId: true,
-  createdAt: true,
+// Customer B-Coin balances
+export const customerBalances = pgTable("customer_balances", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  customerId: uuid("customer_id").references(() => users.id).notNull().unique(),
+  totalBCoins: numeric("total_bcoins", { precision: 10, scale: 2 }).default("0.00"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertBundleSchema = createInsertSchema(bundles).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertBCoinTransactionSchema = createInsertSchema(bCoinTransactions).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({
-  createdAt: true,
-  isUsed: true,
-  usedBy: true,
-  usedAt: true,
-});
-
-export const insertRatingSchema = createInsertSchema(ratings).omit({
-  id: true,
-  createdAt: true,
-});
+// Insert schemas using drizzle-zod
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertBusinessSchema = createInsertSchema(businesses).omit({ id: true, createdAt: true });
+export const insertBundleSchema = createInsertSchema(bundles).omit({ id: true, createdAt: true });
+export const insertBundleMembershipSchema = createInsertSchema(bundleMemberships).omit({ id: true, joinedAt: true });
+export const insertBCoinTransactionSchema = createInsertSchema(bCoinTransactions).omit({ id: true, createdAt: true });
+export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({ createdAt: true });
+export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, createdAt: true });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertCustomerBalanceSchema = createInsertSchema(customerBalances).omit({ id: true, updatedAt: true });
 
 // Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertBusiness = z.infer<typeof insertBusinessSchema>;
-export type InsertBundle = z.infer<typeof insertBundleSchema>;
-export type InsertBCoinTransaction = z.infer<typeof insertBCoinTransactionSchema>;
-export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
-export type InsertRating = z.infer<typeof insertRatingSchema>;
-
 export type User = typeof users.$inferSelect;
 export type Business = typeof businesses.$inferSelect;
 export type Bundle = typeof bundles.$inferSelect;
@@ -131,6 +121,18 @@ export type BundleMembership = typeof bundleMemberships.$inferSelect;
 export type BCoinTransaction = typeof bCoinTransactions.$inferSelect;
 export type QrCode = typeof qrCodes.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type CustomerBalance = typeof customerBalances.$inferSelect;
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertBusiness = z.infer<typeof insertBusinessSchema>;
+export type InsertBundle = z.infer<typeof insertBundleSchema>;
+export type InsertBundleMembership = z.infer<typeof insertBundleMembershipSchema>;
+export type InsertBCoinTransaction = z.infer<typeof insertBCoinTransactionSchema>;
+export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
+export type InsertRating = z.infer<typeof insertRatingSchema>;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type InsertCustomerBalance = z.infer<typeof insertCustomerBalanceSchema>;
 
 // Business categories
 export const BUSINESS_CATEGORIES = [
@@ -143,5 +145,5 @@ export const BUSINESS_CATEGORIES = [
   { id: "stationery", name: "Stationery", emoji: "📚" },
   { id: "hardware", name: "Hardware", emoji: "🔧" },
   { id: "fitness", name: "Fitness", emoji: "💪" },
-  { id: "automotive", name: "Automotive", emoji: "🚗" },
+  { id: "services", name: "Services", emoji: "⚙️" },
 ] as const;

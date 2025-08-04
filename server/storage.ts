@@ -6,12 +6,16 @@ import type {
   BCoinTransaction,
   QrCode,
   Rating,
+  Notification,
+  CustomerBalance,
   InsertUser,
   InsertBusiness,
   InsertBundle,
   InsertBCoinTransaction,
   InsertQrCode,
   InsertRating,
+  InsertNotification,
+  InsertCustomerBalance,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -22,6 +26,8 @@ import {
   bCoinTransactions,
   qrCodes,
   ratings,
+  notifications,
+  customerBalances,
 } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
@@ -66,6 +72,16 @@ export interface IStorage {
   getRatingsByBusiness(businessId: string): Promise<Rating[]>;
   getRatingsByCustomer(customerId: string): Promise<Rating[]>;
   getBusinessAverageRating(businessId: string): Promise<number>;
+
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotificationsByUser(userId: string): Promise<Notification[]>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+
+  // Customer balance operations
+  getCustomerBalance(customerId: string): Promise<CustomerBalance | null>;
+  updateCustomerBalance(customerId: string, totalBCoins: number): Promise<CustomerBalance>;
 }
 
 // In-memory storage implementation
