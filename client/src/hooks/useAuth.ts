@@ -1,14 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  userType: "customer" | "business";
-  phone?: string;
-  createdAt: string;
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import type { User } from '@shared/schema';
 
 interface LoginData {
   email: string;
@@ -19,78 +11,93 @@ interface RegisterData {
   email: string;
   password: string;
   name: string;
-  userType: "customer" | "business";
+  userType: 'customer' | 'business';
   phone?: string;
 }
 
+interface AuthResponse {
+  user: User;
+  token: string;
+}
+
 export function useAuth() {
-  const token = localStorage.getItem("auth_token");
-  
-  return useQuery<User>({
-    queryKey: ["/api/users/me"],
-    enabled: !!token,
+  const queryClient = useQueryClient();
+
+  return useQuery<User | null>({
+    queryKey: ['auth', 'user'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+
+      try {
+        const user = await apiRequest('/api/users/me');
+        return user;
+      } catch {
+        localStorage.removeItem('token');
+        return null;
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
   });
 }
 
 export function useLogin() {
   const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (data: LoginData) => {
-      const response = await apiRequest("/api/auth/login", {
-        method: "POST",
+
+  return useMutation<AuthResponse, Error, LoginData>({
+    mutationFn: async (data) => {
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
       });
-      
-      // Store token
-      localStorage.setItem("auth_token", response.token);
-      
       return response;
     },
-    onSuccess: () => {
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      queryClient.setQueryData(['auth', 'user'], data.user);
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+    onError: (error) => {
+      console.error('Login failed:', error);
     },
   });
 }
 
 export function useRegister() {
   const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (data: RegisterData) => {
-      const response = await apiRequest("/api/auth/register", {
-        method: "POST",
+
+  return useMutation<AuthResponse, Error, RegisterData>({
+    mutationFn: async (data) => {
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
       });
-      
-      // Store token
-      localStorage.setItem("auth_token", response.token);
-      
       return response;
     },
-    onSuccess: () => {
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      queryClient.setQueryData(['auth', 'user'], data.user);
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+    onError: (error) => {
+      console.error('Registration failed:', error);
     },
   });
 }
 
 export function useLogout() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
-      // Clear token
-      localStorage.removeItem("auth_token");
-      return { success: true };
+      localStorage.removeItem('token');
     },
     onSuccess: () => {
-      // Clear all queries
+      queryClient.setQueryData(['auth', 'user'], null);
       queryClient.clear();
-      // Redirect to home
-      window.location.href = "/";
     },
   });
 }

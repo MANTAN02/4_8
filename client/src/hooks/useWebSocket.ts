@@ -1,92 +1,93 @@
 import { useEffect, useState, useCallback } from 'react';
-import type { WebSocketMessage } from '@shared/types';
-import { useAuth } from './useAuth';
-import { useToast } from './use-toast';
+import { useToast } from '@/hooks/use-toast';
+
+interface WebSocketMessage {
+  type: string;
+  data: any;
+}
 
 export function useWebSocket() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const { data: user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!user) return;
-
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+  const connect = useCallback(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     const ws = new WebSocket(wsUrl);
     
     ws.onopen = () => {
-      console.log('WebSocket connected');
       setIsConnected(true);
       setSocket(ws);
+      console.log('WebSocket connected');
     };
-
+    
     ws.onclose = () => {
-      console.log('WebSocket disconnected');
       setIsConnected(false);
       setSocket(null);
+      console.log('WebSocket disconnected');
+      
+      // Reconnect after 3 seconds
+      setTimeout(connect, 3000);
     };
-
+    
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      setIsConnected(false);
     };
-
+    
     ws.onmessage = (event) => {
       try {
         const message: WebSocketMessage = JSON.parse(event.data);
-        handleWebSocketMessage(message);
+        handleMessage(message);
       } catch (error) {
         console.error('Failed to parse WebSocket message:', error);
       }
     };
+    
+    return ws;
+  }, []);
 
-    return () => {
-      ws.close();
-    };
-  }, [user]);
-
-  const handleWebSocketMessage = useCallback((message: WebSocketMessage) => {
+  const handleMessage = useCallback((message: WebSocketMessage) => {
     switch (message.type) {
-      case 'notification':
-        const payload = message.payload;
+      case 'bcoin_earned':
         toast({
-          title: payload.title,
-          description: payload.message,
+          title: 'B-Coins Earned! 🪙',
+          description: `You earned ₹${message.data.amount} at ${message.data.businessName}`,
           duration: 5000,
         });
         break;
-      
-      case 'bcoin_update':
-        // Trigger re-fetch of user balance
-        window.dispatchEvent(new CustomEvent('bcoin-balance-updated'));
-        break;
-      
-      case 'transaction_complete':
-        toast({
-          title: "Transaction Complete",
-          description: "Your transaction has been processed successfully",
-          duration: 4000,
-        });
-        break;
-      
+        
       case 'qr_scanned':
         toast({
-          title: "QR Code Scanned",
-          description: `Customer scanned your QR code for ₹${message.payload.amount}`,
+          title: 'QR Code Scanned! 📱',
+          description: `Customer ${message.data.customerName} made a ₹${message.data.amount} purchase`,
+          duration: 5000,
+        });
+        break;
+        
+      case 'notification':
+        toast({
+          title: message.data.title,
+          description: message.data.message,
           duration: 4000,
         });
         break;
-      
+        
       default:
         console.log('Unknown WebSocket message type:', message.type);
     }
   }, [toast]);
+
+  useEffect(() => {
+    const ws = connect();
+    
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, [connect]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -95,6 +96,7 @@ export function useWebSocket() {
   }, [socket]);
 
   return {
+    socket,
     isConnected,
     sendMessage,
   };

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { DatabaseStorage } from "./db-storage";
+import { db } from "./db";
 import {
   insertUserSchema,
   insertBusinessSchema,
