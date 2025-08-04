@@ -73,6 +73,13 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/10 to-amber-600/10 dark:from-orange-400/5 dark:to-amber-400/5"></div>
         <div className="relative max-w-7xl mx-auto">
           <div className="text-center mb-16">
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/attached_assets/image_1754320645449.png" 
+                alt="Baartal Logo" 
+                className="w-20 h-20 md:w-24 md:h-24 object-contain"
+              />
+            </div>
             <Badge className="mb-4 bg-orange-100 text-orange-800 hover:bg-orange-200" data-testid="badge-beta">
               🚀 Now Live in Mumbai
             </Badge>

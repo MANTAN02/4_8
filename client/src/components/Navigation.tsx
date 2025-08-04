@@ -88,9 +88,11 @@ export function Navigation() {
             {/* Logo */}
             <Link href="/">
               <div className="flex items-center space-x-2" data-testid="nav-logo">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-600 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
-                  B
-                </div>
+                <img 
+                  src="/attached_assets/image_1754320645449.png" 
+                  alt="Baartal Logo" 
+                  className="w-10 h-10 object-contain"
+                />
                 <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                   Baartal
                 </span>
