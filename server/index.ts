@@ -67,11 +67,11 @@ async function createServer() {
     app.use(viteServer.middlewares);
   } else {
     // In production, serve static files
-    app.use(express.static("dist"));
+    app.use(express.static("dist/public"));
     
     // Catch-all handler for SPA routing
     app.get("*", (_, res) => {
-      res.sendFile("index.html", { root: "dist" });
+      res.sendFile("index.html", { root: "dist/public" });
     });
   }
 
