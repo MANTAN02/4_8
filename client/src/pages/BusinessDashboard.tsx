@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { BUSINESS_CATEGORIES } from "@shared/constants";
 import { 
   Store, 
   Users, 
@@ -185,14 +186,11 @@ export default function BusinessDashboard() {
                       required
                     >
                       <option value="">Select category</option>
-                      <option value="restaurant">Restaurant</option>
-                      <option value="retail">Retail</option>
-                      <option value="services">Services</option>
-                      <option value="grocery">Grocery</option>
-                      <option value="pharmacy">Pharmacy</option>
-                      <option value="electronics">Electronics</option>
-                      <option value="clothing">Clothing</option>
-                      <option value="other">Other</option>
+                      {BUSINESS_CATEGORIES.map(category => (
+                        <option key={category.value} value={category.value}>
+                          {category.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

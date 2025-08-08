@@ -14,6 +14,7 @@ import {
   Phone,
   Navigation
 } from "lucide-react";
+import { CATEGORY_FILTER_OPTIONS, getCategoryLabel } from "@shared/constants";
 
 interface Business {
   id: string;
@@ -27,18 +28,6 @@ interface Business {
   isVerified: boolean;
   createdAt: string;
 }
-
-const categories = [
-  { value: "", label: "All Categories" },
-  { value: "restaurant", label: "Restaurant" },
-  { value: "retail", label: "Retail" },
-  { value: "services", label: "Services" },
-  { value: "grocery", label: "Grocery" },
-  { value: "pharmacy", label: "Pharmacy" },
-  { value: "electronics", label: "Electronics" },
-  { value: "clothing", label: "Clothing" },
-  { value: "other", label: "Other" },
-];
 
 const pincodes = [
   { value: "", label: "All Areas" },
@@ -125,7 +114,7 @@ export default function ExploreBusiness() {
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
-                {categories.map(category => (
+                {CATEGORY_FILTER_OPTIONS.map(category => (
                   <option key={category.value} value={category.value}>
                     {category.label}
                   </option>

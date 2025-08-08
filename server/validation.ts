@@ -79,9 +79,18 @@ export const loginSchema = z.object({
 });
 
 // Business creation validation
+// Valid business categories
+const VALID_CATEGORIES = [
+  "electronics", "clothing", "restaurant", "salon", "footwear", 
+  "cafe", "gifts", "pharmacy", "stationery", "ethnic-wear", 
+  "kids-clothing", "formal-wear", "cosmetics", "turf", "beauty-parlour"
+];
+
 export const businessSchema = z.object({
   businessName: businessNameSchema,
-  category: z.string().min(1, 'Category required').max(100, 'Category too long'),
+  category: z.string()
+    .min(1, 'Category required')
+    .refine(val => VALID_CATEGORIES.includes(val), 'Invalid category selected'),
   description: descriptionSchema,
   address: addressSchema,
   pincode: pincodeSchema,

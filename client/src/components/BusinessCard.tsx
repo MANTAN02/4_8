@@ -7,7 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Business } from '@shared/schema';
-import { BUSINESS_CATEGORIES } from '@shared/schema';
+import { BUSINESS_CATEGORIES, getCategoryLabel, getCategoryIcon } from '@shared/constants';
+import { CategoryIcon } from '@/utils/icons';
 
 interface BusinessCardProps {
   business: Business & {
@@ -23,7 +24,8 @@ export function BusinessCard({ business, showActions = true, onViewDetails }: Bu
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const category = BUSINESS_CATEGORIES.find(cat => cat.id === business.category);
+  const categoryLabel = getCategoryLabel(business.category);
+  const categoryIcon = getCategoryIcon(business.category);
   const rating = business.averageRating || 0;
   const ratingCount = business.totalRatings || 0;
 
@@ -68,7 +70,7 @@ export function BusinessCard({ business, showActions = true, onViewDetails }: Bu
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="flex items-center gap-2 text-lg group-hover:text-orange-600 transition-colors">
-              {category && <span className="text-xl">{category.emoji}</span>}
+              <CategoryIcon iconName={categoryIcon} className="w-5 h-5 text-orange-600" />
               <span className="truncate">{business.businessName}</span>
               {business.isVerified && (
                 <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
@@ -136,8 +138,9 @@ export function BusinessCard({ business, showActions = true, onViewDetails }: Bu
           {/* Category and Contact */}
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1">
-              <Badge variant="secondary">
-                {category?.name || business.category}
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <CategoryIcon iconName={categoryIcon} className="w-3 h-3" />
+                {categoryLabel}
               </Badge>
             </div>
             
