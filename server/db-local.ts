@@ -308,7 +308,7 @@ export const initializeDatabase = async () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Bundles table enhanced for Mumbai
+             -- Bundles table enhanced for Mumbai
       CREATE TABLE IF NOT EXISTS enhanced_bundles (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -326,6 +326,42 @@ export const initializeDatabase = async () => {
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (area_id) REFERENCES mumbai_areas(id),
         FOREIGN KEY (created_by) REFERENCES users(id)
+      );
+
+      -- Business KYC table
+      CREATE TABLE IF NOT EXISTS business_kyc (
+        id TEXT PRIMARY KEY,
+        business_id TEXT NOT NULL,
+        owner_name TEXT NOT NULL,
+        owner_phone TEXT NOT NULL,
+        business_name TEXT NOT NULL,
+        business_type TEXT NOT NULL,
+        address TEXT NOT NULL,
+        pincode TEXT NOT NULL,
+        gst_number TEXT,
+        pan_number TEXT NOT NULL,
+        bank_account TEXT NOT NULL,
+        ifsc_code TEXT NOT NULL,
+        kyc_status TEXT DEFAULT 'incomplete' CHECK(kyc_status IN ('incomplete', 'pending', 'verified', 'rejected')),
+        admin_notes TEXT,
+        rejection_reason TEXT,
+        verified_at TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE
+      );
+
+      -- KYC documents table
+      CREATE TABLE IF NOT EXISTS kyc_documents (
+        id TEXT PRIMARY KEY,
+        business_id TEXT NOT NULL,
+        document_type TEXT NOT NULL CHECK(document_type IN ('gst', 'pan', 'aadhaar', 'shop_license', 'bank_statement', 'address_proof')),
+        document_number TEXT NOT NULL,
+        file_url TEXT,
+        verification_status TEXT DEFAULT 'pending' CHECK(verification_status IN ('pending', 'verified', 'rejected')),
+        verified_at TEXT,
+        rejection_reason TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE
       );
     `);
 

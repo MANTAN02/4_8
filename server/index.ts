@@ -3,6 +3,8 @@ import { createServer as createHttpServer } from "http";
 import { createProductionRouter } from "./production-routes";
 import firebaseRoutes from "./firebase-routes";
 import adminRoutes from "./admin-routes";
+import paymentRoutes from "./payment-routes";
+import mumbaiRoutes from "./mumbai-routes";
 import { DatabaseStorage } from "./db-storage";
 import { initWebSocket } from "./websocket";
 import { initializeFirebaseAdmin } from './firebase-admin';
@@ -209,6 +211,8 @@ async function createServer() {
   app.use(createProductionRouter(storage));
   app.use('/api/firebase', firebaseRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/payments', paymentRoutes);
+  app.use('/api/mumbai', mumbaiRoutes);
 
   // Development Vite middleware
   if (process.env.NODE_ENV === "development") {
