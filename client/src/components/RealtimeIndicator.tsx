@@ -1,9 +1,11 @@
-import { useRealtimeData } from '@/hooks/useRealtimeData';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
 export function RealtimeIndicator() {
-  const { connectionStatus, isConnected } = useRealtimeData();
+  const { isConnected } = useWebSocket();
+  
+  const connectionStatus = isConnected ? 'connected' : 'disconnected';
 
   const getStatusConfig = () => {
     switch (connectionStatus) {

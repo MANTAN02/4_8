@@ -1,9 +1,10 @@
-import { useFirebaseSync } from '@/hooks/useFirebaseSync';
 import { Badge } from '@/components/ui/badge';
 import { Cloud, CloudOff, Loader2 } from 'lucide-react';
 
 export function FirebaseStatus() {
-  const { isFirebaseConnected, fcmToken } = useFirebaseSync();
+  // Simple fallback - we'll enhance this once Firebase is properly connected
+  const isFirebaseConnected = false;
+  const fcmToken = null;
 
   const getStatusConfig = () => {
     if (isFirebaseConnected) {

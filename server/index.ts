@@ -250,9 +250,21 @@ async function createServer() {
   }
 
   // Graceful shutdown setup
-  const shutdown = gracefulShutdown(httpServer);
-  process.on('SIGINT', shutdown('SIGINT'));
-  process.on('SIGTERM', shutdown('SIGTERM'));
+  process.on('SIGINT', () => {
+    logInfo('Received SIGINT. Starting graceful shutdown...');
+    httpServer.close(() => {
+      console.log('Server closed. Exiting process...');
+      process.exit(0);
+    });
+  });
+  
+  process.on('SIGTERM', () => {
+    logInfo('Received SIGTERM. Starting graceful shutdown...');
+    httpServer.close(() => {
+      console.log('Server closed. Exiting process...');
+      process.exit(0);
+    });
+  });
 
   // Start server with error handling
   httpServer.listen(PORT, "0.0.0.0", () => {
