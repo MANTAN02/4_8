@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { logError, logSecurityEvent } from './logger';
-import { DatabaseError } from 'pg';
 
 // Custom error classes
 export class AppError extends Error {
@@ -106,7 +105,7 @@ const handleZodError = (error: ZodError): ValidationError => {
 };
 
 // Handle database errors
-const handleDatabaseError = (error: DatabaseError): AppError => {
+const handleDatabaseError = (error: any): AppError => {
   logError(error, { type: 'DATABASE_ERROR', code: error.code });
 
   switch (error.code) {
@@ -229,7 +228,7 @@ export const errorHandler = (
   } else if (error.name && ['JsonWebTokenError', 'TokenExpiredError'].includes(error.name)) {
     appError = handleJWTError(error);
   } else if ('code' in error && typeof error.code === 'string') {
-    appError = handleDatabaseError(error as DatabaseError);
+    appError = handleDatabaseError(error);
   } else {
     // Unexpected error
     appError = new AppError(

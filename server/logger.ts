@@ -34,7 +34,6 @@ const level = () => {
 const customFormat = format.combine(
   format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   format.errors({ stack: true }),
-  format.colorize({ all: true }),
   format.printf(
     (info) => `${info.timestamp} ${info.level}: ${info.message}${info.stack ? '\n' + info.stack : ''}`
   )
@@ -54,26 +53,28 @@ export const logger = createLogger({
       )
     }),
     
-    // File transport for all logs
-    new transports.File({
-      filename: path.join(process.cwd(), 'logs', 'all.log'),
-      format: format.combine(
-        format.timestamp(),
-        format.errors({ stack: true }),
-        format.json()
-      )
-    }),
-    
-    // File transport for error logs only
-    new transports.File({
-      filename: path.join(process.cwd(), 'logs', 'error.log'),
-      level: 'error',
-      format: format.combine(
-        format.timestamp(),
-        format.errors({ stack: true }),
-        format.json()
-      )
-    }),
+    // File transport for all logs (only in production or when LOG_FILE is set)
+    ...(process.env.NODE_ENV === 'production' || process.env.LOG_FILE ? [
+      new transports.File({
+        filename: path.join(process.cwd(), 'logs', 'all.log'),
+        format: format.combine(
+          format.timestamp(),
+          format.errors({ stack: true }),
+          format.json()
+        )
+      }),
+      
+      // File transport for error logs only
+      new transports.File({
+        filename: path.join(process.cwd(), 'logs', 'error.log'),
+        level: 'error',
+        format: format.combine(
+          format.timestamp(),
+          format.errors({ stack: true }),
+          format.json()
+        )
+      }),
+    ] : []),
   ],
 });
 
@@ -174,9 +175,12 @@ export const logBusinessEvent = (event: string, userId: string, details: Record<
   });
 };
 
-// Create logs directory if it doesn't exist
-import fs from 'fs';
-const logsDir = path.join(process.cwd(), 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+// Create logs directory if it doesn't exist (only when needed)
+if (process.env.NODE_ENV === 'production' || process.env.LOG_FILE) {
+  import('fs').then(fs => {
+    const logsDir = path.join(process.cwd(), 'logs');
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+  });
 }
