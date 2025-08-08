@@ -16,7 +16,7 @@ import {
   uncaughtExceptionHandler, 
   gracefulShutdown 
 } from "./error-handler";
-import { getDatabaseHealth } from "./db-enhanced";
+import { initializeDatabase, checkDatabaseHealth } from "./db-local";
 
 // Enhanced rate limiting
 const createRateLimit = (windowMs: number, max: number, message: string) => 
@@ -111,10 +111,13 @@ async function createServer() {
   }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // Initialize local database
+  await initializeDatabase();
+
   // Health check endpoint
   app.get('/health', async (req, res) => {
     try {
-      const dbHealth = getDatabaseHealth();
+      const dbHealth = checkDatabaseHealth();
       const health = {
         status: 'ok',
         timestamp: new Date().toISOString(),
