@@ -276,6 +276,12 @@ async function createServer() {
       port: PORT,
       nodeVersion: process.version
     });
+    
+    console.log(`\n📱 MOBILE ACCESS:`);
+    console.log(`🌐 Local: http://localhost:${PORT}`);
+    console.log(`📱 Network: http://172.30.0.2:${PORT}`);
+    console.log(`☁️  Public: Check your IDE's port forwarding for port ${PORT}`);
+    console.log(`\n✅ Your Baartal app is ready!`);
   });
 
   // Handle server errors
