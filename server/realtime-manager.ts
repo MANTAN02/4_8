@@ -3,6 +3,7 @@ import { db } from './db-enhanced';
 import { businesses, bCoinTransactions, users } from '@shared/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 import { logInfo, logBusinessEvent } from './logger';
+import { firebaseService } from './firebase-admin';
 
 export class RealtimeManager {
   private dashboardIntervals = new Map<string, NodeJS.Timeout>();
@@ -191,6 +192,38 @@ export class RealtimeManager {
         transactionId: transaction[0].id
       });
 
+      // Sync to Firebase
+      try {
+        await firebaseService.logTransaction({
+          customerId,
+          businessId,
+          amount,
+          bCoinsEarned,
+          qrCodeId,
+          type: 'earned',
+          id: transaction[0].id
+        });
+        
+        // Update Firebase user stats
+        await firebaseService.syncBusinessData(business.userId, {
+          id: business.id,
+          businessName: business.businessName,
+          category: business.category,
+          isVerified: business.isVerified,
+          lastTransaction: new Date().toISOString()
+        });
+        
+        await firebaseService.syncCustomerData(customerId, {
+          id: customerId,
+          name: customer.name,
+          email: customer.email,
+          lastTransaction: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Firebase sync failed:', error);
+        // Continue without failing the transaction
+      }
+
       return {
         success: true,
         transaction: transaction[0],
@@ -227,6 +260,13 @@ export class RealtimeManager {
 
         // Update dashboard
         await this.updateBusinessDashboard(business.userId);
+        
+        // Sync to Firebase
+        try {
+          await firebaseService.updateBusinessVerification(businessId, isVerified, 'system');
+        } catch (error) {
+          console.error('Firebase verification sync failed:', error);
+        }
       }
     } catch (error) {
       console.error('Verification notification error:', error);

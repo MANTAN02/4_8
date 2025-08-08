@@ -1,8 +1,10 @@
 import express from "express";
 import { createServer as createHttpServer } from "http";
 import { createProductionRouter } from "./production-routes";
+import firebaseRoutes from "./firebase-routes";
 import { DatabaseStorage } from "./db-storage";
 import { initWebSocket } from "./websocket";
+import { initializeFirebaseAdmin } from './firebase-admin';
 import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
@@ -157,8 +159,18 @@ async function createServer() {
 
   app.locals.storage = storage;
 
+  // Initialize Firebase Admin
+  try {
+    initializeFirebaseAdmin();
+    logInfo('Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    logError(error as Error, { context: 'FIREBASE_INITIALIZATION' });
+    // Continue without Firebase if it fails
+  }
+
   // API routes
   app.use(createProductionRouter(storage));
+  app.use('/api/firebase', firebaseRoutes);
 
   // Development Vite middleware
   if (process.env.NODE_ENV === "development") {

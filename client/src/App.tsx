@@ -6,6 +6,7 @@ import { Navigation } from "@/components/Navigation";
 import { Toaster } from "@/components/ui/toaster";
 import { useState, useEffect } from "react";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useFirebaseSync } from "@/hooks/useFirebaseSync";
 
 // Pages
 import LandingPage from "@/pages/LandingPage";
@@ -21,6 +22,7 @@ import NotFound from "@/pages/NotFound";
 function AppRouter() {
   const { data: user, isLoading } = useAuth();
   useWebSocket(); // Initialize WebSocket connection
+  useFirebaseSync(); // Initialize Firebase real-time sync
 
   // Don't show loading spinner for too long - show content after 2 seconds
   const [showContent, setShowContent] = useState(false);

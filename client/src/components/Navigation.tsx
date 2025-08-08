@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth, useLogout } from '@/hooks/useAuth';
+import { RealtimeIndicator } from '@/components/RealtimeIndicator';
+import { FirebaseStatus } from '@/components/FirebaseStatus';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { NotificationCenter } from './NotificationCenter';
@@ -130,6 +132,12 @@ export function Navigation() {
 
             {/* Right side - User menu or Auth buttons */}
             <div className="flex items-center space-x-3">
+              {user && (
+                <div className="flex items-center gap-2">
+                  <RealtimeIndicator />
+                  <FirebaseStatus />
+                </div>
+              )}
               {user ? (
                 <>
                   {/* Notifications */}
