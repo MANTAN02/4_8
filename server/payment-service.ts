@@ -1,6 +1,6 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { db } from './db-local';
+import { superDb } from './super-database';
 import { logInfo, logError, logWarn } from './logger';
 import { cacheManager } from './cache-manager';
 
@@ -333,7 +333,7 @@ class PaymentService {
   private async creditBCoins(customer_id: string, bcoins: number, transaction_id: string): Promise<void> {
     try {
       // Insert B-Coin transaction record
-      await db.execute(`
+      await superDb.execute(`
         INSERT INTO bcoin_transactions (
           id, customer_id, business_id, amount, bcoins_earned, 
           qr_code_id, type, status, created_at
@@ -362,7 +362,7 @@ class PaymentService {
   
   // Database operations
   private async saveTransaction(transaction: BaartalTransaction): Promise<void> {
-    await db.execute(`
+    await superDb.execute(`
       INSERT INTO transactions (
         id, customer_id, business_id, razorpay_order_id, amount, 
         bcoins_earned, payment_method, payment_status, transaction_type,
@@ -385,7 +385,7 @@ class PaymentService {
   }
   
   private async getTransactionByOrderId(razorpay_order_id: string): Promise<BaartalTransaction | null> {
-    const result = await db.execute(`
+    const result = await superDb.execute(`
       SELECT * FROM transactions WHERE razorpay_order_id = ?
     `, [razorpay_order_id]);
     
@@ -432,14 +432,14 @@ class PaymentService {
     
     values.push(transaction_id);
     
-    await db.execute(`
+    await superDb.execute(`
       UPDATE transactions 
       SET ${set_clauses.join(', ')} 
       WHERE id = ?
     `, values);
     
     // Return updated transaction
-    const result = await db.execute(`SELECT * FROM transactions WHERE id = ?`, [transaction_id]);
+    const result = await superDb.execute(`SELECT * FROM transactions WHERE id = ?`, [transaction_id]);
     const row = result[0];
     return {
       ...row,
@@ -451,7 +451,7 @@ class PaymentService {
     const cached = await cacheManager.getCachedBusiness(business_id);
     if (cached) return cached;
     
-    const result = await db.execute(`SELECT * FROM businesses WHERE id = ?`, [business_id]);
+    const result = await superDb.execute(`SELECT * FROM businesses WHERE id = ?`, [business_id]);
     const business = result[0];
     
     if (business) {
@@ -465,7 +465,7 @@ class PaymentService {
     const cached = await cacheManager.getCachedUser(customer_id);
     if (cached) return cached;
     
-    const result = await db.execute(`SELECT * FROM users WHERE id = ?`, [customer_id]);
+    const result = await superDb.execute(`SELECT * FROM users WHERE id = ?`, [customer_id]);
     const customer = result[0];
     
     if (customer) {
@@ -476,7 +476,7 @@ class PaymentService {
   }
   
   private async updateBusinessStats(business_id: string, amount: number): Promise<void> {
-    await db.execute(`
+    await superDb.execute(`
       UPDATE businesses 
       SET 
         total_transactions = total_transactions + 1,
@@ -490,7 +490,7 @@ class PaymentService {
   }
   
   private async markQRCodeUsed(qr_code_id: string, used_by: string): Promise<void> {
-    await db.execute(`
+    await superDb.execute(`
       UPDATE qr_codes 
       SET 
         is_used = 1,
@@ -536,7 +536,7 @@ class PaymentService {
     const cached = await cacheManager.get(cached_key);
     if (cached) return cached;
     
-    const result = await db.execute(`
+    const result = await superDb.execute(`
       SELECT t.*, b.business_name, b.category
       FROM transactions t
       JOIN businesses b ON t.business_id = b.id
@@ -564,7 +564,7 @@ class PaymentService {
     
     const since_date = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
     
-    const result = await db.execute(`
+    const result = await superDb.execute(`
       SELECT 
         COUNT(*) as total_transactions,
         SUM(amount) as total_revenue,

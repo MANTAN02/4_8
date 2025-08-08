@@ -416,7 +416,8 @@ class SecurityFortress {
   // Data encryption utilities
   encrypt(text: string): EncryptedData {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-gcm', this.config.encryptionKey);
+    const key = crypto.scryptSync(this.config.encryptionKey, 'salt', 32);
+    const cipher = crypto.createCipherGCM('aes-256-gcm', key, iv);
     cipher.setAAD(Buffer.from('baartal-security'));
     
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -432,7 +433,9 @@ class SecurityFortress {
   }
 
   decrypt(encryptedData: EncryptedData): string {
-    const decipher = crypto.createDecipher('aes-256-gcm', this.config.encryptionKey);
+    const iv = Buffer.from(encryptedData.iv, 'hex');
+    const key = crypto.scryptSync(this.config.encryptionKey, 'salt', 32);
+    const decipher = crypto.createDecipherGCM('aes-256-gcm', key, iv);
     decipher.setAAD(Buffer.from('baartal-security'));
     decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
     

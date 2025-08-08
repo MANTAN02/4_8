@@ -1,4 +1,4 @@
-import { db } from './db-local';
+import { superDb } from './super-database';
 import { logInfo, logError } from './logger';
 import { cacheManager } from './cache-manager';
 
@@ -115,7 +115,7 @@ class MumbaiLocationService {
       logInfo('Initializing Mumbai areas...');
       
       for (const area of MUMBAI_AREAS) {
-        await db.execute(`
+        await superDb.execute(`
           INSERT OR REPLACE INTO mumbai_areas (
             id, name, zone, pincode_range, latitude, longitude, is_active, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, 1, ?)
@@ -143,7 +143,7 @@ class MumbaiLocationService {
       const cached = await cacheManager.get(cached_key);
       if (cached) return cached;
       
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT * FROM mumbai_areas WHERE is_active = 1 ORDER BY name
       `);
       
@@ -166,7 +166,7 @@ class MumbaiLocationService {
       const cached = await cacheManager.get(cached_key);
       if (cached) return cached;
       
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT * FROM mumbai_areas 
         WHERE pincode_range LIKE '%' || ? || '%' AND is_active = 1
         LIMIT 1
@@ -194,7 +194,7 @@ class MumbaiLocationService {
       if (cached) return cached;
       
       // Find the closest area using distance calculation
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT *, 
         (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
         cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
@@ -322,7 +322,7 @@ class MumbaiLocationService {
       
       if (!query) return [];
       
-      const result = await db.execute(query, queryParams);
+      const result = await superDb.execute(query, queryParams);
       
       return result.map((business: any) => ({
         ...business,
@@ -342,7 +342,7 @@ class MumbaiLocationService {
       const cached = await cacheManager.get(cached_key);
       if (cached) return cached;
       
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT * FROM mumbai_areas WHERE id = ? AND is_active = 1
       `, [area_id]);
       
@@ -395,7 +395,7 @@ class MumbaiLocationService {
       const cached = await cacheManager.get(cached_key);
       if (cached) return cached;
       
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT 
           ma.name as area_name,
           ma.zone,
@@ -442,7 +442,7 @@ class MumbaiLocationService {
       // Get area by pincode
       const area = await this.getAreaByPincode(pincode);
       
-      await db.execute(`
+      await superDb.execute(`
         UPDATE businesses 
         SET 
           latitude = ?,
@@ -478,7 +478,7 @@ class MumbaiLocationService {
       const cached = await cacheManager.get(cached_key);
       if (cached) return cached;
       
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT 
           ma.id,
           ma.name,
@@ -519,7 +519,7 @@ class MumbaiLocationService {
       const suggestions = [];
       
       // Search in areas
-      const areas = await db.execute(`
+      const areas = await superDb.execute(`
         SELECT id, name, zone, 'area' as type
         FROM mumbai_areas 
         WHERE name LIKE '%' || ? || '%' AND is_active = 1
@@ -530,7 +530,7 @@ class MumbaiLocationService {
       suggestions.push(...areas);
       
       // Search in business locations (famous landmarks)
-      const landmarks = await db.execute(`
+      const landmarks = await superDb.execute(`
         SELECT DISTINCT address as name, pincode, 'landmark' as type
         FROM businesses 
         WHERE address LIKE '%' || ? || '%' AND is_verified = 1 AND is_active = 1

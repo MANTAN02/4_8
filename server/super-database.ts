@@ -159,7 +159,7 @@ class SuperDatabase {
           
           // Backup primary to replica location
           const replicaPath = this.config.replicas[parseInt(replicaId.split('_')[1])];
-          await this.primaryDb.backup(replicaPath);
+          this.primaryDb.backup(replicaPath);
           
           // Reopen replica connection
           const newReplica = new Database(replicaPath, { readonly: true });

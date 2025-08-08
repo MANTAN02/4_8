@@ -391,7 +391,8 @@ router.post('/refund-request', async (req, res) => {
 // Get user's business
 async function getUserBusiness(user_id: string): Promise<any> {
   try {
-    const result = await paymentService['db'].execute(`
+    const { superDb } = await import('./super-database');
+    const result = await superDb.execute(`
       SELECT * FROM businesses WHERE user_id = ? AND is_active = 1
     `, [user_id]);
     
@@ -405,7 +406,8 @@ async function getUserBusiness(user_id: string): Promise<any> {
 // Get QR code details
 async function getQRCode(qr_code_id: string): Promise<any> {
   try {
-    const result = await paymentService['db'].execute(`
+    const { superDb } = await import('./super-database');
+    const result = await superDb.execute(`
       SELECT qr.*, b.business_name, b.category, b.is_verified
       FROM qr_codes qr
       JOIN businesses b ON qr.business_id = b.id
@@ -422,7 +424,8 @@ async function getQRCode(qr_code_id: string): Promise<any> {
 // Get transaction by ID
 async function getTransactionById(transaction_id: string): Promise<any> {
   try {
-    const result = await paymentService['db'].execute(`
+    const { superDb } = await import('./super-database');
+    const result = await superDb.execute(`
       SELECT * FROM transactions WHERE id = ?
     `, [transaction_id]);
     
@@ -437,8 +440,9 @@ async function getTransactionById(transaction_id: string): Promise<any> {
 async function storeRefundRequest(refund_data: any): Promise<void> {
   try {
     const refund_id = `refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const { superDb } = await import('./super-database');
     
-    await paymentService['db'].execute(`
+    await superDb.execute(`
       INSERT INTO refund_requests (
         id, transaction_id, customer_id, amount, reason, status, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)

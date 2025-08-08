@@ -5,7 +5,7 @@ import firebaseRoutes from "./firebase-routes";
 import adminRoutes from "./admin-routes";
 import paymentRoutes from "./payment-routes";
 import mumbaiRoutes from "./mumbai-routes";
-import { DatabaseStorage } from "./db-storage";
+// import { DatabaseStorage } from "./db-storage"; // Replaced with super database
 import { initWebSocket } from "./websocket";
 import { initializeFirebaseAdmin } from './firebase-admin';
 import helmet from "helmet";
@@ -19,7 +19,10 @@ import {
   uncaughtExceptionHandler, 
   gracefulShutdown 
 } from "./error-handler";
-import { initializeDatabase, checkDatabaseHealth } from "./db-local";
+import { superDb } from "./super-database";
+import { securityFortress } from "./security-fortress";
+import { superMonitoring, monitoringMiddleware } from "./super-monitoring";
+import { superBackend, trackRequest } from "./super-backend";
 import { cacheManager, warmupCache } from "./cache-manager";
 import { 
   requestMonitoring, 
@@ -67,6 +70,10 @@ async function createServer() {
   // Trust proxy for proper IP detection
   app.set('trust proxy', 1);
 
+  // Super backend tracking
+  app.use(trackRequest);
+  app.use(monitoringMiddleware);
+
   // Advanced middleware stack
   app.use(requestMonitoring);
   app.use(healthCheck);
@@ -75,6 +82,11 @@ async function createServer() {
   app.use(validateJsonPayload);
   app.use(apiVersioning);
   app.use(requestTimeout(30000));
+
+  // Security fortress protection
+  app.use(securityFortress.securityHeadersMiddleware());
+  app.use(securityFortress.createDDoSProtection());
+  app.use(securityFortress.threatDetectionMiddleware());
 
   // Request ID tracking (legacy support)
   app.use(requestId);
@@ -186,17 +198,14 @@ async function createServer() {
     res.json(metrics);
   });
 
-  // Storage instance with enhanced error handling
-  let storage: DatabaseStorage;
+  // Super database health check
   try {
-    storage = new DatabaseStorage();
-    logInfo('Database storage initialized successfully');
+    const dbHealth = await superDb.getHealthStatus();
+    logInfo('Super database initialized', { status: dbHealth.status });
   } catch (error) {
-    logError(error as Error, { context: 'DATABASE_INITIALIZATION' });
+    logError(error as Error, { context: 'SUPER_DATABASE_INITIALIZATION' });
     throw error;
   }
-
-  app.locals.storage = storage;
 
   // Initialize Firebase Admin
   try {
@@ -208,7 +217,7 @@ async function createServer() {
   }
 
   // API routes
-  app.use(createProductionRouter(storage));
+  app.use(createProductionRouter());
   app.use('/api/firebase', firebaseRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/payments', paymentRoutes);

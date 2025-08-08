@@ -1,6 +1,5 @@
 import { Router } from "express";
-import type { DatabaseStorage } from "./db-storage";
-import { db } from "./db";
+import { superDb } from "./super-database";
 import {
   insertUserSchema,
   insertBusinessSchema,
@@ -44,9 +43,9 @@ const generalLimiter = rateLimit({
   max: 100 // limit each IP to 100 requests per minute
 });
 
-export function createProductionRouter(storage: DatabaseStorage) {
+export function createProductionRouter() {
   const router = Router();
-  const authService = new AuthService(storage);
+  // Note: AuthService now uses superDb internally
 
   // Apply rate limiting
   router.use('/api/auth', authLimiter);

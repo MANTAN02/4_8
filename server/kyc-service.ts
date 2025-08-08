@@ -1,4 +1,4 @@
-import { db } from './db-local';
+import { superDb } from './super-database';
 import { logInfo, logError } from './logger';
 import { smsService } from './sms-service';
 
@@ -36,7 +36,7 @@ class KYCService {
     try {
       const kyc_id = `kyc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      await db.execute(`
+      await superDb.execute(`
         INSERT INTO business_kyc (
           id, business_id, owner_name, owner_phone, business_name,
           business_type, address, pincode, gst_number, pan_number,
@@ -59,7 +59,7 @@ class KYCService {
       ]);
       
       // Update business verification status
-      await db.execute(`
+      await superDb.execute(`
         UPDATE businesses 
         SET verification_requested = 1, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
@@ -84,7 +84,7 @@ class KYCService {
     try {
       const doc_id = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      await db.execute(`
+      await superDb.execute(`
         INSERT INTO kyc_documents (
           id, business_id, document_type, document_number, 
           file_url, verification_status, created_at
@@ -109,14 +109,14 @@ class KYCService {
   async approveKYC(business_id: string, admin_notes?: string): Promise<boolean> {
     try {
       // Update KYC status
-      await db.execute(`
+      await superDb.execute(`
         UPDATE business_kyc 
         SET kyc_status = 'verified', admin_notes = ?, verified_at = ?
         WHERE business_id = ?
       `, [admin_notes, new Date().toISOString(), business_id]);
       
       // Verify business
-      await db.execute(`
+      await superDb.execute(`
         UPDATE businesses 
         SET is_verified = 1, verified_at = CURRENT_TIMESTAMP
         WHERE id = ?
@@ -144,7 +144,7 @@ class KYCService {
   // Reject KYC
   async rejectKYC(business_id: string, rejection_reason: string): Promise<boolean> {
     try {
-      await db.execute(`
+      await superDb.execute(`
         UPDATE business_kyc 
         SET kyc_status = 'rejected', rejection_reason = ?
         WHERE business_id = ?
@@ -171,11 +171,11 @@ class KYCService {
   // Get KYC status
   async getKYCStatus(business_id: string): Promise<any> {
     try {
-      const kyc = await db.execute(`
+      const kyc = await superDb.execute(`
         SELECT * FROM business_kyc WHERE business_id = ?
       `, [business_id]);
       
-      const documents = await db.execute(`
+      const documents = await superDb.execute(`
         SELECT * FROM kyc_documents WHERE business_id = ?
       `, [business_id]);
       
@@ -192,7 +192,7 @@ class KYCService {
   // Get pending KYC applications (admin)
   async getPendingKYC(): Promise<any[]> {
     try {
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT 
           bk.*,
           b.business_name,
@@ -216,7 +216,7 @@ class KYCService {
   
   private async getBusinessDetails(business_id: string): Promise<any> {
     try {
-      const result = await db.execute(`
+      const result = await superDb.execute(`
         SELECT bk.owner_phone, bk.business_name
         FROM business_kyc bk
         WHERE bk.business_id = ?
