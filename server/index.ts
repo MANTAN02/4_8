@@ -6,13 +6,55 @@ import { initWebSocket } from "./websocket";
 import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
+import { httpLogger, logger, logInfo, logError } from "./logger";
+import { 
+  errorHandler, 
+  unhandledRejectionHandler, 
+  uncaughtExceptionHandler, 
+  gracefulShutdown 
+} from "./error-handler";
+import { getDatabaseHealth } from "./db-enhanced";
+
+// Enhanced rate limiting
+const createRateLimit = (windowMs: number, max: number, message: string) => 
+  rateLimit({
+    windowMs,
+    max,
+    message: { error: message },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1', // Skip localhost
+  });
+
+// Request ID middleware
+const requestId = (req: any, res: any, next: any) => {
+  req.requestId = req.headers['x-request-id'] || `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  res.setHeader('X-Request-ID', req.requestId);
+  next();
+};
+
+// Security headers middleware
+const securityHeaders = (req: any, res: any, next: any) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+};
 
 async function createServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
-  // Trust proxy for Replit environment
-  app.set('trust proxy', true);
+  // Trust proxy for proper IP detection
+  app.set('trust proxy', 1);
+
+  // Request ID tracking
+  app.use(requestId);
+
+  // HTTP request logging
+  app.use(httpLogger);
 
   // Security middleware
   app.use(helmet({
@@ -25,76 +67,204 @@ async function createServer() {
         connectSrc: ["'self'", "ws:", "wss:"],
       },
     },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
   }));
-  
+
+  // Additional security headers
+  app.use(securityHeaders);
+
   // CORS configuration
+  const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? (process.env.ALLOWED_ORIGINS || 'https://your-domain.com').split(',')
+    : ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:5000'];
+
   app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://your-domain.com', 'https://www.your-domain.com']
-      : ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:5000'],
+    origin: allowedOrigins,
     credentials: true,
+    optionsSuccessStatus: 200
   }));
-  
-  // Compression middleware
-  app.use(compression());
 
-  // Storage instance
-  const storage = new DatabaseStorage();
-  
-  // Make storage available to middleware
-  app.locals.storage = storage;
+  // Compression
+  app.use(compression({ threshold: 1024 }));
 
-  // Body parsing middleware with limits
-  app.use(express.json({ limit: '10mb' }));
+  // Rate limiting
+  app.use('/api/auth', createRateLimit(15 * 60 * 1000, 5, 'Too many auth attempts'));
+  app.use('/api', createRateLimit(60 * 1000, 100, 'Too many requests'));
+  app.use(createRateLimit(60 * 1000, 1000, 'Global rate limit exceeded'));
+
+  // Body parsing with limits
+  app.use(express.json({ 
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      try {
+        JSON.parse(buf.toString());
+      } catch (e) {
+        throw new Error('Invalid JSON');
+      }
+    }
+  }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Add production API routes with security
+  // Health check endpoint
+  app.get('/health', async (req, res) => {
+    try {
+      const dbHealth = getDatabaseHealth();
+      const health = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        database: dbHealth,
+        version: process.env.npm_package_version || '1.0.0'
+      };
+      res.json(health);
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        message: 'Service unhealthy',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Metrics endpoint (basic)
+  app.get('/metrics', (req, res) => {
+    const metrics = {
+      process: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        cpu: process.cpuUsage(),
+        pid: process.pid
+      },
+      timestamp: new Date().toISOString()
+    };
+    res.json(metrics);
+  });
+
+  // Storage instance with enhanced error handling
+  let storage: DatabaseStorage;
+  try {
+    storage = new DatabaseStorage();
+    logInfo('Database storage initialized successfully');
+  } catch (error) {
+    logError(error as Error, { context: 'DATABASE_INITIALIZATION' });
+    throw error;
+  }
+
+  app.locals.storage = storage;
+
+  // API routes
   app.use(createProductionRouter(storage));
 
-  // In development, use Vite middleware for frontend
+  // Development Vite middleware
   if (process.env.NODE_ENV === "development") {
-    const vite = await import("vite");
-    const path = await import("path");
-    const viteServer = await vite.createServer({
-      server: { 
-        middlewareMode: true,
-        host: "0.0.0.0",
-        allowedHosts: [
-          "localhost",
-          ".replit.app", 
-          ".replit.dev",
-          ".spock.replit.dev"
-        ]
-      },
-      appType: "spa",
-      root: "./client",
-      resolve: {
-        alias: {
-          "@": path.resolve(process.cwd(), "client", "src"),
-          "@shared": path.resolve(process.cwd(), "shared"),
-          "@assets": path.resolve(process.cwd(), "attached_assets"),
+    try {
+      const vite = await import("vite");
+      const path = await import("path");
+      const viteServer = await vite.createServer({
+        server: { 
+          middlewareMode: true,
+          host: "0.0.0.0",
+          allowedHosts: [
+            "localhost",
+            ".replit.app", 
+            ".replit.dev",
+            ".spock.replit.dev"
+          ]
         },
-      },
-    });
-    app.use(viteServer.middlewares);
+        appType: "spa",
+        root: "./client",
+        resolve: {
+          alias: {
+            "@": path.resolve(process.cwd(), "client", "src"),
+            "@shared": path.resolve(process.cwd(), "shared"),
+            "@assets": path.resolve(process.cwd(), "attached_assets"),
+          },
+        },
+      });
+      app.use(viteServer.middlewares);
+      logInfo('Vite development server initialized');
+    } catch (error) {
+      logError(error as Error, { context: 'VITE_INITIALIZATION' });
+    }
   } else {
-    // In production, serve static files
-    app.use(express.static("dist/public"));
+    // Production static files
+    app.use(express.static("dist/public", {
+      maxAge: '1y',
+      etag: true,
+      lastModified: true
+    }));
     
-    // Catch-all handler for SPA routing
-    app.get("*", (_, res) => {
-      res.sendFile("index.html", { root: "dist/public" });
+    // SPA fallback
+    app.get("*", (req, res) => {
+      res.sendFile("index.html", { 
+        root: "dist/public",
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
     });
   }
 
-  const httpServer = createHttpServer(app);
-  
-  // Initialize WebSocket server
-  initWebSocket(httpServer);
-
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  // 404 handler
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      error: {
+        message: 'Endpoint not found',
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        timestamp: new Date().toISOString()
+      }
+    });
   });
+
+  // Error handling middleware (must be last)
+  app.use(errorHandler);
+
+  // Create HTTP server
+  const httpServer = createHttpServer(app);
+
+  // Initialize WebSocket with error handling
+  try {
+    initWebSocket(httpServer);
+    logInfo('WebSocket server initialized');
+  } catch (error) {
+    logError(error as Error, { context: 'WEBSOCKET_INITIALIZATION' });
+  }
+
+  // Graceful shutdown setup
+  const shutdown = gracefulShutdown(httpServer);
+  process.on('SIGINT', shutdown('SIGINT'));
+  process.on('SIGTERM', shutdown('SIGTERM'));
+
+  // Start server with error handling
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    logInfo(`🚀 Server running on http://0.0.0.0:${PORT}`, {
+      environment: process.env.NODE_ENV || 'development',
+      port: PORT,
+      nodeVersion: process.version
+    });
+  });
+
+  // Handle server errors
+  httpServer.on('error', (error) => {
+    logError(error, { context: 'SERVER_ERROR' });
+  });
+
+  return httpServer;
 }
 
-createServer().catch(console.error);
+// Global error handlers
+process.on('unhandledRejection', unhandledRejectionHandler);
+process.on('uncaughtException', uncaughtExceptionHandler);
+
+// Start server
+createServer().catch((error) => {
+  logError(error, { context: 'SERVER_STARTUP_FAILED' });
+  process.exit(1);
+});
