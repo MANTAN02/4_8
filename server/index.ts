@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createHttpServer } from "http";
 import { createProductionRouter } from "./production-routes";
 import firebaseRoutes from "./firebase-routes";
+import adminRoutes from "./admin-routes";
 import { DatabaseStorage } from "./db-storage";
 import { initWebSocket } from "./websocket";
 import { initializeFirebaseAdmin } from './firebase-admin';
@@ -17,6 +18,18 @@ import {
   gracefulShutdown 
 } from "./error-handler";
 import { initializeDatabase, checkDatabaseHealth } from "./db-local";
+import { cacheManager, warmupCache } from "./cache-manager";
+import { 
+  requestMonitoring, 
+  securityMiddleware, 
+  performanceMonitoring,
+  healthCheck,
+  validateJsonPayload,
+  apiVersioning,
+  requestTimeout,
+  rateLimitConfigs
+} from "./advanced-middleware";
+import { backupManager, migrationManager, runMigrationsNow } from "./backup-manager";
 
 // Enhanced rate limiting
 const createRateLimit = (windowMs: number, max: number, message: string) => 
@@ -52,7 +65,16 @@ async function createServer() {
   // Trust proxy for proper IP detection
   app.set('trust proxy', 1);
 
-  // Request ID tracking
+  // Advanced middleware stack
+  app.use(requestMonitoring);
+  app.use(healthCheck);
+  app.use(securityMiddleware);
+  app.use(performanceMonitoring);
+  app.use(validateJsonPayload);
+  app.use(apiVersioning);
+  app.use(requestTimeout(30000));
+
+  // Request ID tracking (legacy support)
   app.use(requestId);
 
   // HTTP request logging
@@ -93,10 +115,10 @@ async function createServer() {
   // Compression
   app.use(compression({ threshold: 1024 }));
 
-  // Rate limiting
-  app.use('/api/auth', createRateLimit(15 * 60 * 1000, 5, 'Too many auth attempts'));
-  app.use('/api', createRateLimit(60 * 1000, 100, 'Too many requests'));
-  app.use(createRateLimit(60 * 1000, 1000, 'Global rate limit exceeded'));
+  // Enhanced rate limiting
+  app.use('/api/auth', rateLimitConfigs.auth);
+  app.use('/api', rateLimitConfigs.api);
+  app.use(rateLimitConfigs.generous);
 
   // Body parsing with limits
   app.use(express.json({ 
@@ -113,6 +135,18 @@ async function createServer() {
 
   // Initialize local database
   await initializeDatabase();
+
+  // Run database migrations
+  await runMigrationsNow();
+
+  // Warm up cache
+  await warmupCache();
+
+  // Start scheduled backups
+  backupManager.startScheduledBackups({
+    fullBackupInterval: 24, // every 24 hours
+    incrementalInterval: 6  // every 6 hours
+  });
 
   // Health check endpoint
   app.get('/health', async (req, res) => {
@@ -174,6 +208,7 @@ async function createServer() {
   // API routes
   app.use(createProductionRouter(storage));
   app.use('/api/firebase', firebaseRoutes);
+  app.use('/api/admin', adminRoutes);
 
   // Development Vite middleware
   if (process.env.NODE_ENV === "development") {
