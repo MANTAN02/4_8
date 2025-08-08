@@ -2,14 +2,14 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Firebase configuration (should match your app config)
+// Firebase configuration - SWAPIN Project
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: "AIzaSyCrrffodzoTjYeeP2ip5OywDtHcEBCYaNE",
+  authDomain: "swapin-b4770.firebaseapp.com",
+  projectId: "swapin-b4770",
+  storageBucket: "swapin-b4770.appspot.com",
+  messagingSenderId: "299611441533",
+  appId: "1:299611441533:web:db07e94ecb36749c4e2414"
 };
 
 // Initialize Firebase in service worker
