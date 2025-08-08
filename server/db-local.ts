@@ -257,6 +257,76 @@ export const initializeDatabase = async () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
+
+      -- Enhanced transactions table for payments
+      CREATE TABLE IF NOT EXISTS transactions (
+        id TEXT PRIMARY KEY,
+        customer_id TEXT NOT NULL,
+        business_id TEXT NOT NULL,
+        razorpay_order_id TEXT NOT NULL,
+        razorpay_payment_id TEXT,
+        amount REAL NOT NULL CHECK(amount > 0),
+        bcoins_earned REAL NOT NULL CHECK(bcoins_earned >= 0),
+        payment_method TEXT DEFAULT 'upi' CHECK(payment_method IN ('upi', 'card', 'netbanking', 'wallet', 'emi')),
+        payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded')),
+        transaction_type TEXT DEFAULT 'purchase' CHECK(transaction_type IN ('purchase', 'refund', 'settlement', 'bonus')),
+        qr_code_id TEXT,
+        metadata TEXT, -- JSON for additional data
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        completed_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+        FOREIGN KEY (qr_code_id) REFERENCES qr_codes(id)
+      );
+
+      -- Refund requests table
+      CREATE TABLE IF NOT EXISTS refund_requests (
+        id TEXT PRIMARY KEY,
+        transaction_id TEXT NOT NULL,
+        customer_id TEXT NOT NULL,
+        business_id TEXT NOT NULL,
+        amount REAL NOT NULL,
+        reason TEXT,
+        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected', 'processed')),
+        admin_notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        processed_at TEXT,
+        FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE
+      );
+
+      -- Mumbai areas table
+      CREATE TABLE IF NOT EXISTS mumbai_areas (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        zone TEXT NOT NULL,
+        pincode_range TEXT,
+        latitude REAL,
+        longitude REAL,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Bundles table enhanced for Mumbai
+      CREATE TABLE IF NOT EXISTS enhanced_bundles (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        area_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        max_members INTEGER DEFAULT 20,
+        current_members INTEGER DEFAULT 0,
+        joining_fee REAL DEFAULT 0,
+        monthly_fee REAL DEFAULT 0,
+        description TEXT,
+        terms_conditions TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_by TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (area_id) REFERENCES mumbai_areas(id),
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      );
     `);
 
     // Create indexes for better performance
@@ -322,6 +392,33 @@ export const initializeDatabase = async () => {
       CREATE INDEX IF NOT EXISTS idx_logs_level ON system_logs(level);
       CREATE INDEX IF NOT EXISTS idx_logs_created ON system_logs(created_at);
       CREATE INDEX IF NOT EXISTS idx_logs_user ON system_logs(user_id);
+
+      -- Transaction indexes for payments
+      CREATE INDEX IF NOT EXISTS idx_transactions_customer ON transactions(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_transactions_business ON transactions(business_id);
+      CREATE INDEX IF NOT EXISTS idx_transactions_razorpay_order ON transactions(razorpay_order_id);
+      CREATE INDEX IF NOT EXISTS idx_transactions_razorpay_payment ON transactions(razorpay_payment_id);
+      CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(payment_status);
+      CREATE INDEX IF NOT EXISTS idx_transactions_method ON transactions(payment_method);
+      CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at);
+      CREATE INDEX IF NOT EXISTS idx_transactions_completed ON transactions(completed_at);
+
+      -- Refund request indexes
+      CREATE INDEX IF NOT EXISTS idx_refunds_transaction ON refund_requests(transaction_id);
+      CREATE INDEX IF NOT EXISTS idx_refunds_customer ON refund_requests(customer_id);
+      CREATE INDEX IF NOT EXISTS idx_refunds_status ON refund_requests(status);
+      CREATE INDEX IF NOT EXISTS idx_refunds_created ON refund_requests(created_at);
+
+      -- Mumbai area indexes
+      CREATE INDEX IF NOT EXISTS idx_areas_zone ON mumbai_areas(zone);
+      CREATE INDEX IF NOT EXISTS idx_areas_active ON mumbai_areas(is_active);
+      CREATE INDEX IF NOT EXISTS idx_areas_location ON mumbai_areas(latitude, longitude);
+
+      -- Enhanced bundle indexes
+      CREATE INDEX IF NOT EXISTS idx_enhanced_bundles_area ON enhanced_bundles(area_id);
+      CREATE INDEX IF NOT EXISTS idx_enhanced_bundles_category ON enhanced_bundles(category);
+      CREATE INDEX IF NOT EXISTS idx_enhanced_bundles_active ON enhanced_bundles(is_active);
+      CREATE INDEX IF NOT EXISTS idx_enhanced_bundles_created ON enhanced_bundles(created_at);
     `);
 
     // Create triggers for automatic updates
