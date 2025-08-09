@@ -126,6 +126,54 @@ export default function BusinessLogin() {
     signupMutation.mutate(signupForm);
   };
 
+  const googleSignInMutation = useMutation({
+    mutationFn: async (idToken: string) => {
+      const response = await apiRequest("POST", "/api/auth/google", { 
+        idToken,
+        userType: "business"
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.user.userType !== 'business') {
+        toast({
+          title: "Access Denied",
+          description: "This login is for business accounts only.",
+          variant: "destructive",
+        });
+        return;
+      }
+      authService.setUser(data.user);
+      toast({
+        title: "Welcome!",
+        description: "Signed in with Google successfully.",
+      });
+      setLocation("/merchant-dashboard");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not sign in with Google.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      googleSignInMutation.mutate(idToken);
+    } catch (error: any) {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not sign in with Google.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-baartal-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">

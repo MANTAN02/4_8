@@ -16,6 +16,9 @@ sqlite.pragma('mmap_size = 268435456'); // 256MB
 // Initialize Drizzle with SQLite
 export const db = drizzle(sqlite, { schema });
 
+// Export the raw SQLite instance for backup manager
+export { sqlite };
+
 // Database performance monitoring
 let queryCount = 0;
 let totalQueryTime = 0;

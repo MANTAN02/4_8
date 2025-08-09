@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import { createServer as createHttpServer } from "http";
 import { createProductionRouter } from "./production-routes";
@@ -35,6 +38,7 @@ import {
   rateLimitConfigs
 } from "./advanced-middleware";
 import { backupManager, migrationManager, runMigrationsNow } from "./backup-manager";
+import { initializeDatabase, checkDatabaseHealth } from "./db-local";
 
 // Enhanced rate limiting
 const createRateLimit = (windowMs: number, max: number, message: string) => 
@@ -65,7 +69,7 @@ const securityHeaders = (req: any, res: any, next: any) => {
 
 async function createServer() {
   const app = express();
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5173;
 
   // Trust proxy for proper IP detection
   app.set('trust proxy', 1);

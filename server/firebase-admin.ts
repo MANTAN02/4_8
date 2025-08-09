@@ -266,4 +266,19 @@ export class FirebaseService {
   }
 }
 
-export const firebaseService = new FirebaseService();
+// Export a function to get the Firebase service instance
+let firebaseServiceInstance: FirebaseService | null = null;
+
+export const getFirebaseService = () => {
+  if (!firebaseServiceInstance) {
+    firebaseServiceInstance = new FirebaseService();
+  }
+  return firebaseServiceInstance;
+};
+
+// For backward compatibility
+export const firebaseService = {
+  get instance() {
+    return getFirebaseService();
+  }
+};

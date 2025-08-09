@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import type { Business, BCoinTransaction, QrCode, Rating } from '@shared/schema';
+import type { Business, BCoinTransaction, QrCode as QrCodeType, Rating } from '@shared/schema';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function EnhancedBusinessDashboard() {
@@ -25,7 +25,7 @@ export default function EnhancedBusinessDashboard() {
     queryKey: ['/api/business/transactions'],
   });
 
-  const { data: qrCodes = [], isLoading: qrCodesLoading } = useQuery<QrCode[]>({
+  const { data: qrCodes = [], isLoading: qrCodesLoading } = useQuery<QrCodeType[]>({
     queryKey: ['/api/business/qr-codes'],
   });
 

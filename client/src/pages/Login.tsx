@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLogin } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '../../../firebase.config';
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -131,6 +133,34 @@ export default function Login() {
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                 </div>
+              </div>
+              <div className="flex justify-center mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={async () => {
+                    try {
+                      const provider = new GoogleAuthProvider();
+                      const result = await signInWithPopup(auth, provider);
+                      toast({
+                        title: 'Google sign-in successful',
+                        description: `Welcome, ${result.user.displayName || result.user.email}`,
+                      });
+                      setLocation('/');
+                    } catch (error) {
+                      toast({
+                        title: 'Google sign-in failed',
+                        description: error instanceof Error ? error.message : 'Please try again.',
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  data-testid="button-google-sign-in"
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-2" />
+                  Sign in with Google
+                </Button>
               </div>
             </div>
 

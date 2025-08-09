@@ -41,6 +41,12 @@ After project creation, enable these services:
 - Go to Authentication
 - Enable Email/Password sign-in method
 
+**Google Authentication:**
+- Go to Authentication → Sign-in methods
+- Enable Google sign-in method
+- Configure with Web client ID: `1083312730280-hhl2ailg9v6276gm032af9jomf17h3vf.apps.googleusercontent.com`
+- Configure with Web client secret: `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`
+
 **Cloud Messaging:**
 - Go to Cloud Messaging
 - Firebase will auto-configure this
@@ -288,6 +294,7 @@ service cloud.firestore {
 - [ ] Configure CORS settings
 - [ ] Set up Firebase hosting (optional)
 - [ ] Enable Firebase Analytics
+- [ ] Configure Google OAuth credentials in Firebase Console
 
 ### 9.2 Performance Optimization
 - [ ] Enable Firestore offline persistence
@@ -314,6 +321,11 @@ Your Baartal application now has:
 **1. "Firebase config not found"**
 - Check your `.env` file has all required variables
 - Restart your development server
+
+**2. "Google authentication not working"**
+- Check that Google sign-in is enabled in Firebase Console
+- Verify Web client ID and secret are correctly configured
+- Ensure your domain is in the authorized domains list
 
 **2. "Permission denied" in Firestore**
 - Check your security rules

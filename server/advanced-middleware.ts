@@ -22,41 +22,6 @@ interface EnhancedRequest extends Request {
   };
 }
 
-// Rate limiting store using cache
-class CacheRateLimitStore {
-  private prefix: string;
-  private windowMs: number;
-
-  constructor(windowMs: number, prefix = 'rl:') {
-    this.windowMs = windowMs;
-    this.prefix = prefix;
-  }
-
-  async get(key: string): Promise<number | undefined> {
-    const cached = await cacheManager.get(`${this.prefix}${key}`);
-    return cached?.count;
-  }
-
-  async set(key: string, value: number, windowMs?: number): Promise<void> {
-    await cacheManager.set(
-      `${this.prefix}${key}`,
-      { count: value, resetTime: Date.now() + (windowMs || this.windowMs) },
-      windowMs || this.windowMs
-    );
-  }
-
-  async increment(key: string): Promise<number> {
-    const current = await this.get(key) || 0;
-    const newCount = current + 1;
-    await this.set(key, newCount);
-    return newCount;
-  }
-
-  async reset(key: string): Promise<void> {
-    await cacheManager.del(`${this.prefix}${key}`);
-  }
-}
-
 // Advanced rate limiting configurations
 export const createAdvancedRateLimit = (options: {
   windowMs: number;
@@ -64,19 +29,16 @@ export const createAdvancedRateLimit = (options: {
   message?: string;
   keyGenerator?: (req: Request) => string;
   skipIf?: (req: Request) => boolean;
-  onLimitReached?: (req: Request, res: Response) => void;
 }) => {
-  const store = new CacheRateLimitStore(options.windowMs);
-  
   return rateLimit({
     windowMs: options.windowMs,
     max: options.max,
     message: { error: options.message || 'Too many requests' },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: options.keyGenerator || ((req) => req.ip),
+    keyGenerator: options.keyGenerator || ((req) => req.ip || 'unknown'),
     skip: options.skipIf || (() => false),
-    onLimitReached: (req, res) => {
+    handler: (req: any, res: any) => {
       const enhanced = req as EnhancedRequest;
       logWarn('Rate limit exceeded', {
         ip: enhanced.clientInfo?.ip,
@@ -85,14 +47,8 @@ export const createAdvancedRateLimit = (options: {
         requestId: enhanced.requestId
       });
       
-      options.onLimitReached?.(req, res);
-    },
-    store: {
-      get: (key: string) => store.get(key),
-      set: (key: string, value: number, windowMs: number) => store.set(key, value, windowMs),
-      increment: (key: string) => store.increment(key),
-      resetKey: (key: string) => store.reset(key)
-    } as any
+      res.status(429).json({ error: options.message || 'Too many requests' });
+    }
   });
 };
 
@@ -141,11 +97,13 @@ export const requestMonitoring = (req: Request, res: Response, next: NextFunctio
 // Analytics event storage
 async function storeAnalyticsEvent(req: EnhancedRequest, statusCode: number, duration: number) {
   try {
-    await db.execute(`
+    // Use sqlite directly for analytics
+    const { sqlite } = await import('./db-local');
+    sqlite.prepare(`
       INSERT INTO analytics_events (
         id, user_id, event_type, event_data, session_id, ip_address, user_agent, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
+    `).run(
       `evt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       req.user?.id || null,
       'api_request',
@@ -160,7 +118,7 @@ async function storeAnalyticsEvent(req: EnhancedRequest, statusCode: number, dur
       req.clientInfo?.ip,
       req.clientInfo?.userAgent,
       new Date().toISOString()
-    ]);
+    );
   } catch (error) {
     // Fail silently for analytics
   }
@@ -324,10 +282,10 @@ async function getSystemHealth() {
       cache: cacheHealth,
       version: process.env.npm_package_version || '1.0.0'
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       healthy: false,
-      error: error.message,
+      error: error?.message || 'Unknown error',
       timestamp: new Date().toISOString()
     };
   }
@@ -338,8 +296,8 @@ async function checkDatabaseHealth() {
   try {
     const { checkDatabaseHealth } = await import('./db-local');
     return checkDatabaseHealth();
-  } catch (error) {
-    return { healthy: false, error: error.message };
+  } catch (error: any) {
+    return { healthy: false, error: error?.message || 'Unknown error' };
   }
 }
 
@@ -347,8 +305,8 @@ async function getCacheHealth() {
   try {
     const { getCacheHealth } = await import('./cache-manager');
     return getCacheHealth();
-  } catch (error) {
-    return { healthy: false, error: error.message };
+  } catch (error: any) {
+    return { healthy: false, error: error?.message || 'Unknown error' };
   }
 }
 
@@ -390,7 +348,7 @@ function getObjectDepth(obj: any, depth = 0): number {
 
 // API versioning middleware
 export const apiVersioning = (req: Request, res: Response, next: NextFunction) => {
-  const version = req.headers['api-version'] || req.query.v || 'v1';
+  const version = req.headers['api-version'] || (typeof req.query.v === 'string' ? req.query.v : 'v1');
   
   // Store version info for analytics
   (req as any).apiVersion = version;

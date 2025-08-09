@@ -1,12 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -29,6 +26,15 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      }
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

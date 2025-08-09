@@ -1,10 +1,11 @@
+import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { createReadStream, createWriteStream } from 'fs';
 import { createGzip, createGunzip } from 'zlib';
 import { pipeline } from 'stream/promises';
 import { logInfo, logError, logWarn } from './logger';
-import { db } from './db-local';
+import { db, sqlite } from './db-local';
 import { cacheManager } from './cache-manager';
 
 interface BackupMetadata {
@@ -201,7 +202,7 @@ class BackupManager {
       }
 
       // Create restoration transaction
-      const transaction = db.transaction(() => {
+      const transaction = sqlite.transaction(() => {
         // Restore schema if needed
         if (!options.dataOnly && backupData.schema) {
           this.restoreSchema(backupData.schema, options.tables);
@@ -342,8 +343,8 @@ class BackupManager {
 
   // Private helper methods
   private async getAllTables(): Promise<Array<{ name: string }>> {
-    const result = db.prepare(`
-      SELECT name FROM sqlite_master 
+    const result = sqlite.prepare(`
+      SELECT name FROM sqlite_master
       WHERE type='table' AND name NOT LIKE 'sqlite_%'
     `).all() as Array<{ name: string }>;
     
@@ -351,8 +352,8 @@ class BackupManager {
   }
 
   private async getTableSchema(tableName: string): Promise<string> {
-    const result = db.prepare(`
-      SELECT sql FROM sqlite_master 
+    const result = sqlite.prepare(`
+      SELECT sql FROM sqlite_master
       WHERE type='table' AND name=?
     `).get(tableName) as { sql: string } | undefined;
     
@@ -360,14 +361,14 @@ class BackupManager {
   }
 
   private async getTableData(tableName: string): Promise<any[]> {
-    return db.prepare(`SELECT * FROM ${tableName}`).all();
+    return sqlite.prepare(`SELECT * FROM ${tableName}`).all();
   }
 
   private async getTableChanges(tableName: string, since: string): Promise<any[]> {
     // For tables with updated_at or created_at columns
     try {
-      return db.prepare(`
-        SELECT * FROM ${tableName} 
+      return sqlite.prepare(`
+        SELECT * FROM ${tableName}
         WHERE created_at > ? OR updated_at > ?
       `).all(since, since);
     } catch {
@@ -439,7 +440,6 @@ class BackupManager {
   }
 
   private calculateChecksum(data: any): string {
-    const crypto = require('crypto');
     return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
   }
 
@@ -448,10 +448,10 @@ class BackupManager {
       if (tables && !tables.includes(tableName)) continue;
       
       // Drop existing table
-      db.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
+      sqlite.prepare(`DROP TABLE IF EXISTS ${tableName}`).run();
       
       // Recreate table
-      db.prepare(sql as string).run();
+      sqlite.prepare(sql as string).run();
     }
   }
 
@@ -460,13 +460,13 @@ class BackupManager {
       if (tables && !tables.includes(tableName)) continue;
       
       // Clear existing data
-      db.prepare(`DELETE FROM ${tableName}`).run();
+      sqlite.prepare(`DELETE FROM ${tableName}`).run();
       
       // Insert data
       if (rows.length > 0) {
         const columns = Object.keys(rows[0]);
         const placeholders = columns.map(() => '?').join(',');
-        const stmt = db.prepare(`INSERT INTO ${tableName} (${columns.join(',')}) VALUES (${placeholders})`);
+        const stmt = sqlite.prepare(`INSERT INTO ${tableName} (${columns.join(',')}) VALUES (${placeholders})`);
         
         for (const row of rows) {
           stmt.run(...columns.map(col => row[col]));
@@ -509,7 +509,7 @@ class MigrationManager {
   }
 
   private ensureMigrationTable(): void {
-    db.prepare(`
+    sqlite.prepare(`
       CREATE TABLE IF NOT EXISTS migrations (
         id TEXT PRIMARY KEY,
         version TEXT NOT NULL,
@@ -549,7 +549,7 @@ class MigrationManager {
   }
 
   private async getPendingMigrations(): Promise<Migration[]> {
-    const executedMigrations = db.prepare('SELECT id FROM migrations').all() as Array<{ id: string }>;
+    const executedMigrations = sqlite.prepare('SELECT id FROM migrations').all() as Array<{ id: string }>;
     const executedIds = new Set(executedMigrations.map(m => m.id));
 
     return Array.from(this.migrations.values())
@@ -564,11 +564,11 @@ class MigrationManager {
       logInfo('Running migration', { id: migration.id, description: migration.description });
 
       // Run migration in transaction
-      const transaction = db.transaction(() => {
+      const transaction = sqlite.transaction(() => {
         migration.up();
         
         // Record migration
-        db.prepare(`
+        sqlite.prepare(`
           INSERT INTO migrations (id, version, description, executed_at, execution_time, checksum)
           VALUES (?, ?, ?, ?, ?, ?)
         `).run(
@@ -597,7 +597,6 @@ class MigrationManager {
   }
 
   private calculateMigrationChecksum(migration: Migration): string {
-    const crypto = require('crypto');
     return crypto.createHash('sha256')
       .update(migration.up.toString() + migration.down.toString())
       .digest('hex');
@@ -640,7 +639,7 @@ migrationManager.addMigration({
   version: '1.0.1',
   description: 'Add user sessions table',
   up: () => {
-    db.prepare(`
+    sqlite.prepare(`
       CREATE TABLE IF NOT EXISTS user_sessions (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
@@ -652,7 +651,7 @@ migrationManager.addMigration({
     `).run();
   },
   down: () => {
-    db.prepare('DROP TABLE IF EXISTS user_sessions').run();
+    sqlite.prepare('DROP TABLE IF EXISTS user_sessions').run();
   }
 });
 

@@ -6,13 +6,12 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "your-project.appspot.com",
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.VITE_FIREBASE_APP_ID || "your-app-id",
-  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX"
+  apiKey: "AIzaSyA9bNfEMuFsxxydYmgJ9f7WFebmmsDaGag",
+  authDomain: "barrtal-9f826.firebaseapp.com",
+  projectId: "barrtal-9f826",
+  storageBucket: "barrtal-9f826.appspot.com",
+  messagingSenderId: "1083312730280",
+  appId: "1:1083312730280:web:9d51cc9094eaa1d034d29d"
 };
 
 // Initialize Firebase
@@ -36,18 +35,12 @@ try {
 export { messaging };
 
 // Connect to emulators in development
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   try {
     // Only connect if not already connected
-    if (!db._delegate._databaseId.projectId.includes('demo-')) {
-      connectFirestoreEmulator(db, 'localhost', 8080);
-    }
-    if (!auth.config.emulator) {
-      connectAuthEmulator(auth, 'http://localhost:9099');
-    }
-    if (!storage._delegate._location.bucket.includes('demo-')) {
-      connectStorageEmulator(storage, 'localhost', 9199);
-    }
+    connectFirestoreEmulator(db, 'localhost', 8080);
+    connectAuthEmulator(auth, 'http://localhost:9099');
+    connectStorageEmulator(storage, 'localhost', 9199);
   } catch (error) {
     console.log('Emulators not available or already connected');
   }
@@ -61,7 +54,7 @@ export const requestNotificationPermission = async () => {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const token = await getToken(messaging, {
-        vapidKey: process.env.VITE_FIREBASE_VAPID_KEY
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       });
       console.log('Notification permission granted. Token:', token);
       return token;

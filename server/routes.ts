@@ -63,6 +63,21 @@ export function createRouter(storage: IStorage) {
     }
   });
 
+  const googleSignInSchema = z.object({
+    idToken: z.string(),
+    userType: z.enum(["customer", "business"]),
+  });
+
+  router.post("/api/auth/google", async (req, res) => {
+    try {
+      const { idToken, userType } = googleSignInSchema.parse(req.body);
+      const result = await authService.signInWithGoogle(idToken, userType);
+      res.json(result);
+    } catch (error) {
+      res.status(401).json({ error: error instanceof Error ? error.message : "Google Sign-In failed" });
+    }
+  });
+
   // Get current user profile
   router.get("/api/users/me", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {

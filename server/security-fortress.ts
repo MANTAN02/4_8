@@ -548,9 +548,9 @@ const securityConfig: SecurityConfig = {
   maxLoginAttempts: 5,
   lockoutDuration: 15 * 60 * 1000, // 15 minutes
   passwordMinLength: 8,
-  enableBruteForceProtection: true,
-  enableDDoSProtection: true,
-  enableThreatDetection: true,
+  enableBruteForceProtection: process.env.NODE_ENV === 'production',
+  enableDDoSProtection: process.env.NODE_ENV === 'production',
+  enableThreatDetection: process.env.NODE_ENV === 'production',
   encryptionKey: process.env.ENCRYPTION_KEY || 'your-encryption-key-change-this'
 };
 

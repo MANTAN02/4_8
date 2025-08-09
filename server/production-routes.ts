@@ -30,6 +30,8 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { desc, eq, and, avg, sum, count, gte, lte } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
+import { DatabaseStorage } from "./db-storage";
+import { db } from "./db";
 
 // Rate limiting for security
 const authLimiter = rateLimit({
@@ -46,6 +48,10 @@ const generalLimiter = rateLimit({
 export function createProductionRouter() {
   const router = Router();
   // Note: AuthService now uses superDb internally
+  
+  // Create storage and AuthService instances
+  const storage = new DatabaseStorage();
+  const authService = new AuthService(storage);
 
   // Apply rate limiting
   router.use('/api/auth', authLimiter);
@@ -348,7 +354,7 @@ export function createProductionRouter() {
       
       // Calculate B-Coins earned (Platform takes 5% commission)
       const purchaseAmount = parseFloat(qrCode.amount);
-      const bCoinRate = parseFloat(business.bCoinRate);
+      const bCoinRate = business.bCoinRate ? parseFloat(business.bCoinRate) : 5.0;
       const bCoinsEarned = (purchaseAmount * bCoinRate) / 100;
       const platformCommission = bCoinsEarned * 0.05; // 5% platform fee
       const actualBCoinsEarned = bCoinsEarned - platformCommission;

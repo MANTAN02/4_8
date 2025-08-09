@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { auth } from "./firebase.config";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,6 +87,47 @@ export default function CustomerLogin() {
     signupMutation.mutate(signupForm);
   };
 
+  const googleSignInMutation = useMutation({
+    mutationFn: async (idToken: string) => {
+      const response = await apiRequest("POST", "/api/auth/google", { 
+        idToken,
+        userType: "customer"
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      authService.setUser(data.user);
+      toast({
+        title: "Welcome!",
+        description: "Signed in with Google successfully.",
+      });
+      setLocation("/customer-dashboard");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not sign in with Google.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Google Sign-In handler
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      googleSignInMutation.mutate(idToken);
+    } catch (error: any) {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Could not sign in with Google.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-baartal-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -145,6 +188,14 @@ export default function CustomerLogin() {
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? "Logging in..." : "Login as Customer"}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full mt-2 bg-white border border-gray-300 text-baartal-blue hover:bg-gray-100 flex items-center justify-center"
+                    onClick={handleGoogleSignIn}
+                  >
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5 mr-2" />
+                    Sign in with Google
                   </Button>
                 </form>
               </TabsContent>
