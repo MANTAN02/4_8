@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
+import UserLanding from "@/pages/user-landing";
+import MerchantLanding from "@/pages/merchant-landing";
 import CustomerLogin from "@/pages/customer-login";
 import BusinessLogin from "@/pages/business-login";
 import CustomerDashboard from "@/pages/customer-dashboard";
@@ -20,6 +22,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/customer-login" component={CustomerLogin} />
       <Route path="/business-login" component={BusinessLogin} />
+      <Route path="/for-users" component={UserLanding} />
+      <Route path="/for-merchants" component={MerchantLanding} />
       <Route path="/customer-dashboard" component={CustomerDashboard} />
       <Route path="/merchant-dashboard" component={MerchantDashboard} />
       <Route path="/about" component={About} />

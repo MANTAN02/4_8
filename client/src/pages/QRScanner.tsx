@@ -38,7 +38,7 @@ export default function QRScanner() {
     onSuccess: (data) => {
       toast({
         title: "Transaction Successful!",
-        description: `You earned ${data.bCoinsEarned} B-Coins from this purchase of ₹${amount}`,
+        description: `You earned ${data.bCoinsEarned} Bucks from this purchase of ₹${amount}`,
       });
       setQrCodeId("");
       setAmount("");
@@ -100,7 +100,7 @@ export default function QRScanner() {
             <QrCode className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">QR Code Scanner</h1>
-          <p className="text-gray-600 mt-2">Scan QR codes to complete transactions and earn B-Coins</p>
+          <p className="text-gray-600 mt-2">Scan QR codes to complete transactions and earn Bucks</p>
         </div>
 
         {!showManualEntry ? (
@@ -133,7 +133,7 @@ export default function QRScanner() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Coins className="w-4 h-4 text-orange-500" />
-                    <span>Instant B-Coin rewards</span>
+                    <span>Instant Bucks rewards</span>
                   </div>
                 </div>
 
@@ -201,9 +201,9 @@ export default function QRScanner() {
                     </div>
                     <div className="text-sm space-y-1 text-orange-800">
                       <div>Purchase Amount: ₹{parseFloat(amount).toFixed(2)}</div>
-                      <div>Estimated B-Coins: ~{(parseFloat(amount) * 0.05).toFixed(1)} (5% rate)</div>
+                      <div>Estimated Bucks: ~{(parseFloat(amount) * 0.05).toFixed(1)} (5% rate)</div>
                       <div className="text-xs text-orange-600 mt-2">
-                        * Actual B-Coin rate depends on the business
+                        * Actual Bucks rate depends on the business
                       </div>
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export default function QRScanner() {
                 <div className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
                 <div>
                   <div className="font-medium text-gray-900">Visit a Partner Business</div>
-                  <div>Look for businesses displaying the Baartal QR code</div>
+                  <div>Look for businesses displaying the Prebucks QR code</div>
                 </div>
               </div>
               
@@ -272,7 +272,7 @@ export default function QRScanner() {
                 <div className="flex-shrink-0 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
                 <div>
                   <div className="font-medium text-gray-900">Scan & Earn</div>
-                  <div>Scan the QR code, enter the amount, and earn B-Coins instantly</div>
+                  <div>Scan the QR code, enter the amount, and earn Bucks instantly</div>
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ export default function LandingPage() {
   const features = [
     {
       icon: <Coins className="w-6 h-6" />,
-      title: "B-Coin Rewards",
+      title: "Prebucks Rewards",
       description: "Earn loyalty coins with every purchase. Convert to real savings.",
       color: "from-yellow-500 to-amber-600"
     },
@@ -46,14 +46,14 @@ export default function LandingPage() {
     {
       name: "Priya Sharma",
       role: "Small Business Owner",
-      content: "Baartal increased my customer retention by 300%. The B-Coin system is revolutionary!",
+      content: "Prebucks increased my customer retention by 300%. The Bucks system is revolutionary!",
       rating: 5,
       location: "Andheri, Mumbai"
     },
     {
       name: "Rajesh Kumar",
       role: "Regular Customer",
-      content: "I've saved over ₹15,000 using B-Coins. Best loyalty platform in Mumbai!",
+      content: "I've saved over ₹15,000 using Bucks. Best loyalty platform in Mumbai!",
       rating: 5,
       location: "Bandra, Mumbai"
     },
@@ -103,7 +103,7 @@ export default function LandingPage() {
               <div className="p-4 bg-white rounded-2xl shadow-lg border border-orange-100">
                 <img 
                   src="/attached_assets/image_1754320645449.png" 
-                  alt="Baartal Logo" 
+                  alt="Prebucks Logo" 
                   className="w-16 h-16 md:w-20 md:h-20 object-contain"
                 />
               </div>
@@ -115,7 +115,7 @@ export default function LandingPage() {
               Mumbai's #1 Loyalty Platform
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
-              Earn B-Coins at local businesses, get real rewards, and support your community. 
+              Earn Bucks at local businesses, get real rewards, and support your community. 
               <span className="font-semibold text-orange-600"> Join 10,000+ Mumbai residents!</span>
             </p>
             
@@ -171,7 +171,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
-              Why Choose <span className="text-gradient-orange">Baartal?</span>
+              Why Choose <span className="text-gradient-orange">Prebucks?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Experience the future of local business loyalty with our comprehensive platform designed for Mumbai's vibrant community.
@@ -244,7 +244,7 @@ export default function LandingPage() {
               Trusted by <span className="text-gradient-orange">Mumbai</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              See what our community of customers and business owners have to say about their Baartal experience.
+              See what our community of customers and business owners have to say about their Prebucks experience.
             </p>
           </div>
 

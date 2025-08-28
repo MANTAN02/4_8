@@ -169,7 +169,7 @@ export default function MerchantDashboard() {
           <h1 className="text-3xl font-bold text-baartal-blue mb-2">
             {getCategoryIcon(business.category)} {business.businessName}
           </h1>
-          <p className="text-gray-600">Merchant Dashboard - Manage your B-Coin business</p>
+          <p className="text-gray-600">Merchant Dashboard - Manage your Prebucks business</p>
         </div>
 
         {/* Overview Cards */}
@@ -178,7 +178,7 @@ export default function MerchantDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100">B-Coins Issued</p>
+                  <p className="text-green-100">Prebucks Issued</p>
                   <p className="text-2xl font-bold">₹{business.totalBCoinsIssued || "0.00"}</p>
                 </div>
                 <Coins className="h-8 w-8 text-green-200" />
@@ -190,7 +190,7 @@ export default function MerchantDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100">B-Coins Redeemed</p>
+                  <p className="text-blue-100">Prebucks Redeemed</p>
                   <p className="text-2xl font-bold">₹{business.totalBCoinsRedeemed || "0.00"}</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-blue-200" />

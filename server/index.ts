@@ -69,7 +69,7 @@ const securityHeaders = (req: any, res: any, next: any) => {
 
 async function createServer() {
   const app = express();
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5173;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
   // Trust proxy for proper IP detection
   app.set('trust proxy', 1);
@@ -333,7 +333,7 @@ async function createServer() {
     console.log(`🌐 Local: http://localhost:${PORT}`);
     console.log(`📱 Network: http://172.30.0.2:${PORT}`);
     console.log(`☁️  Public: Check your IDE's port forwarding for port ${PORT}`);
-    console.log(`\n✅ Your Baartal app is ready!`);
+    console.log(`\n✅ Your Prebucks app is ready!`);
   });
 
   // Handle server errors

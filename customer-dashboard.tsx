@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Coins, QrCode, MapPin, History, Star, Store, TrendingUp, Users } from "lucide-react";
+import { Coins, QrCode, MapPin, History, Star, Store, TrendingUp, Users, IndianRupee } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,6 +42,70 @@ export default function CustomerDashboard() {
 
   const { data: bundles = [], isLoading: bundlesLoading } = useQuery<any[]>({
     queryKey: ["/api/bundles"],
+  });
+
+  const { data: offers = [], isLoading: offersLoading } = useQuery<any[]>({
+    queryKey: ["/api/offers"],
+  });
+
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
+  const [billAmount, setBillAmount] = useState("");
+  const [requestedDiscount, setRequestedDiscount] = useState("");
+  const [method, setMethod] = useState<"upi" | "card">("upi");
+  const [preview, setPreview] = useState<any | null>(null);
+  const [qrVerifiedBusinessId, setQrVerifiedBusinessId] = useState<string | null>(null);
+
+  const previewMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/redeem/preview", {
+        customerId: user?.id,
+        businessId: selectedBusiness?.id,
+        billAmount,
+        requestedDiscount,
+        method,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => setPreview(data),
+  });
+
+  const initiateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/payments/phonepe/initiate", {
+        customerId: user?.id,
+        businessId: selectedBusiness?.id,
+        billAmount,
+        discount: preview?.discount || requestedDiscount || "0",
+        method,
+      });
+      return response.json();
+    },
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/payments/phonepe/confirm", {
+        customerId: user?.id,
+        businessId: selectedBusiness?.id,
+        billAmount,
+        discount: preview?.discount || requestedDiscount || "0",
+        paymentRequestId: initiateMutation.data?.paymentRequestId,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Payment Successful",
+        description: "Prebucks applied and payment confirmed.",
+      });
+      setPayDialogOpen(false);
+      setPreview(null);
+      setBillAmount("");
+      setRequestedDiscount("");
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", user?.id, "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bcoin-transactions/user", user?.id] });
+    },
   });
 
   const ratingMutation = useMutation({
@@ -88,15 +154,15 @@ export default function CustomerDashboard() {
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-baartal-blue mb-2">Welcome back, {user.name}!</h1>
-          <p className="text-gray-600">Your B-Coin wallet and local business network</p>
+          <p className="text-gray-600">Your Prebucks wallet and local business network</p>
         </div>
 
-        {/* B-Coin Balance Card */}
+        {/* Prebucks Balance Card */}
         <Card className="mb-8 bg-gradient-to-r from-baartal-orange to-orange-600 text-white">
           <CardContent className="p-8">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Your B-Coin Balance</h2>
+                <h2 className="text-2xl font-bold mb-2">Your Prebucks Balance</h2>
                 <div className="text-4xl font-bold mb-2">₹{profile?.bCoinBalance || "0.00"}</div>
                 <div className="flex items-center space-x-4 text-sm opacity-90">
                   <span>Earned: ₹{profile?.totalBCoinsEarned || "0.00"}</span>
@@ -114,7 +180,7 @@ export default function CustomerDashboard() {
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Scan & Earn B-Coins</DialogTitle>
+                      <DialogTitle>Scan & Earn Prebucks</DialogTitle>
                     </DialogHeader>
                     <EnhancedQRScanner 
                       customerId={user.id} 
@@ -131,10 +197,14 @@ export default function CustomerDashboard() {
         </Card>
 
         <Tabs defaultValue="bundles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="bundles" className="data-[state=active]:bg-baartal-orange data-[state=active]:text-white">
               <MapPin className="mr-2 h-4 w-4" />
               Explore Bundles
+            </TabsTrigger>
+            <TabsTrigger value="offers" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">
+              <IndianRupee className="mr-2 h-4 w-4" />
+              Offers
             </TabsTrigger>
             <TabsTrigger value="history" className="data-[state=active]:bg-baartal-blue data-[state=active]:text-white">
               <History className="mr-2 h-4 w-4" />
@@ -145,6 +215,111 @@ export default function CustomerDashboard() {
               Rate & Earn
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="offers" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {offersLoading ? (
+                <div className="col-span-full text-center py-8">
+                  <div className="animate-pulse text-gray-600">Loading offers...</div>
+                </div>
+              ) : offers.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No offers yet</h3>
+                  <p className="text-gray-500">Check back soon for Prebucks partners in your area.</p>
+                </div>
+              ) : (
+                offers.map((b: any) => (
+                  <Card key={b.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-lg text-baartal-blue flex items-center justify-between">
+                        {b.businessName}
+                        <Badge className="bg-baartal-orange text-white">{b.bCoinRate}% Prebucks</Badge>
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">{b.category} · {b.pincode}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <Button
+                          className="bg-baartal-blue text-white"
+                          onClick={() => { setSelectedBusiness(b); setPayDialogOpen(true); setQrVerifiedBusinessId(null); setPreview(null); setBillAmount(""); setRequestedDiscount(""); }}
+                        >
+                          Pay with Prebucks
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            <Dialog open={payDialogOpen} onOpenChange={setPayDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Pay at {selectedBusiness?.businessName}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm mb-2 font-medium">Scan shop QR to confirm location</label>
+                    <EnhancedQRScanner
+                      customerId={user.id}
+                      onScanComplete={async (payload: any) => {
+                        // Accept either qr code id or code, then fetch from backend to verify business
+                        try {
+                          const code = payload?.qrCode || payload?.code || payload;
+                          const res = await fetch(`/api/qr-codes/${code}`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            const bizId = data?.business?.id || data?.qrCode?.businessId;
+                            setQrVerifiedBusinessId(bizId || null);
+                            toast({ title: "Shop verified", description: data?.business?.businessName || "QR OK" });
+                          }
+                        } catch {}
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Bill amount (₹)</label>
+                    <Input value={billAmount} onChange={(e) => setBillAmount(e.target.value)} type="number" min="0" placeholder="e.g., 750" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Use Prebucks (₹)</label>
+                    <Input value={requestedDiscount} onChange={(e) => setRequestedDiscount(e.target.value)} type="number" min="0" placeholder="e.g., 100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Payment method</label>
+                    <Select value={method} onValueChange={(v) => setMethod(v as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upi">UPI (no fee)</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" onClick={() => previewMutation.mutate()} disabled={!billAmount || !selectedBusiness || !qrVerifiedBusinessId || (qrVerifiedBusinessId !== selectedBusiness?.id) || previewMutation.isPending}>
+                      {previewMutation.isPending ? "Calculating..." : "Preview"}
+                    </Button>
+                    <Button onClick={() => initiateMutation.mutate()} disabled={!preview || initiateMutation.isPending}>
+                      {initiateMutation.isPending ? "Initiating..." : "Initiate"}
+                    </Button>
+                    <Button className="bg-green-600 text-white" onClick={() => confirmMutation.mutate()} disabled={!initiateMutation.data || confirmMutation.isPending}>
+                      {confirmMutation.isPending ? "Confirming..." : "Confirm & Pay"}
+                    </Button>
+                  </div>
+                  {preview && (
+                    <div className="text-sm text-gray-700 space-y-1">
+                      <div>Balance: ₹{preview.balance}</div>
+                      <div>Discount: ₹{preview.discount}</div>
+                      <div>Fee: ₹{preview.fee}</div>
+                      <div className="font-semibold">Net payable: ₹{preview.netPayable}</div>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
 
           <TabsContent value="bundles" className="space-y-6">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

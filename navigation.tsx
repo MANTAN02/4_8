@@ -16,12 +16,24 @@ export default function Navigation() {
           <Link href="/">
             <div className="flex items-center text-2xl font-bold text-baartal-orange cursor-pointer">
               <Coins className="mr-2" />
-              Baartal
+              Prebucks
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link href="/for-users">
+              <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
+                <Home className="mr-1 h-4 w-4" />
+                For Users
+              </span>
+            </Link>
+            <Link href="/for-merchants">
+              <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
+                <Store className="mr-1 h-4 w-4" />
+                For Merchants
+              </span>
+            </Link>
             <Link href="/about">
               <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
                 <Info className="mr-1 h-4 w-4" />

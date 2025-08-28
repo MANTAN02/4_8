@@ -18,7 +18,7 @@ export function BCoinBalance({ customerId }: BCoinBalanceProps) {
   });
 
   const recentTxns = recentTransactions.slice(0, 3);
-  const totalBCoins = balance ? parseFloat(balance.totalBCoins) : 0;
+  const totalBCoins = balance?.totalBCoins ? parseFloat(balance.totalBCoins) : 0;
 
   if (balanceLoading) {
     return (
@@ -38,7 +38,7 @@ export function BCoinBalance({ customerId }: BCoinBalanceProps) {
       <CardHeader className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white">
         <CardTitle className="flex items-center gap-2">
           <Coins className="w-6 h-6" />
-          B-Coin Balance
+          Prebucks Balance
         </CardTitle>
         <CardDescription className="text-orange-100">
           Your loyalty rewards balance
@@ -50,7 +50,7 @@ export function BCoinBalance({ customerId }: BCoinBalanceProps) {
             <div className="text-3xl font-bold text-orange-600 dark:text-orange-400" data-testid="text-balance">
               ₹{totalBCoins.toFixed(2)}
             </div>
-            <p className="text-sm text-muted-foreground">Available B-Coins</p>
+            <p className="text-sm text-muted-foreground">Available Bucks</p>
           </div>
           <Badge variant="secondary" className="text-sm">
             Active

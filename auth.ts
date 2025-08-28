@@ -2,6 +2,7 @@ import { type User } from "@shared/schema";
 
 class AuthService {
   private currentUser: User | null = null;
+  private token: string | null = null;
 
   setUser(user: User | null) {
     this.currentUser = user;
@@ -9,6 +10,15 @@ class AuthService {
       localStorage.setItem('baartal_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('baartal_user');
+    }
+  }
+
+  setToken(token: string | null) {
+    this.token = token;
+    if (token) {
+      localStorage.setItem('baartal_token', token);
+    } else {
+      localStorage.removeItem('baartal_token');
     }
   }
 
@@ -23,6 +33,16 @@ class AuthService {
       } catch {
         localStorage.removeItem('baartal_user');
       }
+    }
+    return null;
+  }
+
+  getToken(): string | null {
+    if (this.token) return this.token;
+    const stored = localStorage.getItem('baartal_token');
+    if (stored) {
+      this.token = stored;
+      return this.token;
     }
     return null;
   }
@@ -43,6 +63,7 @@ class AuthService {
 
   logout() {
     this.setUser(null);
+    this.setToken(null);
   }
 }
 

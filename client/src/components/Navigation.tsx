@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Bell, Menu, X, User, LogOut, Settings, Home, QrCode, Store, Scan } from 'lucide-react';
+import { Bell, Menu, X, User, LogOut, Settings, Home, QrCode, Store, Scan, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth, useLogout } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
 import { RealtimeIndicator } from '@/components/RealtimeIndicator';
 import { FirebaseStatus } from '@/components/FirebaseStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +26,10 @@ export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { data: user } = useAuth();
+  const { data: wallet } = useQuery<{ balance: number }>({
+    queryKey: ['/api/bcoin-balance/my'],
+    enabled: !!user && user.userType === 'customer',
+  });
   const logoutMutation = useLogout();
   const { toast } = useToast();
 
@@ -93,12 +98,12 @@ export function Navigation() {
                 <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl shadow-md">
                   <img 
                     src="/attached_assets/image_1754320645449.png" 
-                    alt="Baartal Logo" 
+                    alt="Prebucks Logo" 
                     className="w-8 h-8 object-contain"
                   />
                 </div>
                 <span className="text-2xl font-bold text-gradient-orange">
-                  Baartal
+                  Prebucks
                 </span>
               </div>
             </Link>
@@ -132,6 +137,12 @@ export function Navigation() {
 
             {/* Right side - User menu or Auth buttons */}
             <div className="flex items-center space-x-3">
+              {user && user.userType === 'customer' && (
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200">
+                  <Coins className="w-4 h-4" />
+                  <span className="text-sm font-medium">₹{(wallet?.balance ?? 0).toFixed(2)}</span>
+                </div>
+              )}
               {user && (
                 <div className="flex items-center gap-2">
                   <RealtimeIndicator />

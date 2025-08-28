@@ -82,14 +82,14 @@ export default function CustomerDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.name}!</h1>
-          <p className="text-gray-600 mt-2">Manage your B-Coins and discover local businesses</p>
+          <p className="text-gray-600 mt-2">Manage your Bucks and discover local businesses</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">B-Coin Balance</CardTitle>
+              <CardTitle className="text-sm font-medium">Prebucks Balance</CardTitle>
               <Coins className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
@@ -109,7 +109,7 @@ export default function CustomerDashboard() {
               <div className="text-2xl font-bold text-green-600">
                 {transactionsLoading ? <LoadingSpinner size="sm" /> : totalEarned.toFixed(1)}
               </div>
-              <p className="text-xs text-muted-foreground">Lifetime B-Coins earned</p>
+              <p className="text-xs text-muted-foreground">Lifetime Bucks earned</p>
             </CardContent>
           </Card>
 
@@ -135,7 +135,7 @@ export default function CustomerDashboard() {
               <div className="text-2xl font-bold text-purple-600">
                 {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
               </div>
-              <p className="text-xs text-muted-foreground">Baartal member</p>
+              <p className="text-xs text-muted-foreground">Prebucks member</p>
             </CardContent>
           </Card>
         </div>
@@ -148,7 +148,7 @@ export default function CustomerDashboard() {
                 <Calendar className="w-5 h-5" />
                 <span>Recent Transactions</span>
               </CardTitle>
-              <CardDescription>Your latest B-Coin activity</CardDescription>
+              <CardDescription>Your latest Bucks activity</CardDescription>
             </CardHeader>
             <CardContent>
               {transactionsLoading ? (
@@ -191,7 +191,7 @@ export default function CustomerDashboard() {
                 <div className="text-center py-8">
                   <Coins className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">No transactions yet</p>
-                  <p className="text-sm text-gray-400 mb-4">Start shopping to earn your first B-Coins!</p>
+                  <p className="text-sm text-gray-400 mb-4">Start shopping to earn your first Bucks!</p>
                   <Button onClick={() => setLocation("/explore")}>
                     Explore Businesses
                   </Button>
@@ -229,7 +229,7 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium text-orange-600">{business.bCoinRate}%</p>
-                        <p className="text-xs text-gray-500">B-Coin rate</p>
+                        <p className="text-xs text-gray-500">Prebucks rate</p>
                       </div>
                     </div>
                   ))}

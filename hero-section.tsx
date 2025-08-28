@@ -11,7 +11,7 @@ export default function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl lg:text-6xl font-bold text-baartal-blue mb-6">
-              Barter Smarter. <span className="text-baartal-orange">Earn & Spend B-Coins</span> Across Mumbai.
+              Shop Smarter. <span className="text-baartal-orange">Earn & Spend Prebucks</span> Across Mumbai.
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Join a bundle of trusted neighborhood businesses and grow together through barter and loyalty.
@@ -26,11 +26,11 @@ export default function HeroSection() {
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => setLocation("/customer-login")}
+                onClick={() => setLocation("/customer-dashboard")}
                 className="border-2 border-baartal-blue text-baartal-blue px-8 py-4 text-lg font-semibold hover:bg-baartal-blue hover:text-white h-auto"
               >
                 <MapPin className="mr-2 h-5 w-5" />
-                Explore Baartal Bundles
+                Explore Offers
               </Button>
             </div>
           </div>
@@ -46,7 +46,7 @@ export default function HeroSection() {
                   <Coins className="text-white text-xl" />
                 </div>
                 <div>
-                  <div className="font-semibold text-baartal-blue">B-Coins Earned</div>
+                  <div className="font-semibold text-baartal-blue">Prebucks Earned</div>
                   <div className="text-baartal-orange font-bold">₹250</div>
                 </div>
               </div>

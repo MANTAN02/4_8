@@ -31,19 +31,12 @@ export default function GetStarted() {
 
   const businessSignupMutation = useMutation({
     mutationFn: async (data: any) => {
-      // First register user
-      const userResponse = await apiRequest("POST", "/api/auth/register", {
+      const userResponse = await apiRequest("POST", "/api/auth/fake-login", {
         email: data.email,
-        password: data.phone, // Using phone as temporary password
         userType: "business",
         name: data.ownerName,
-        phone: data.phone,
-        pincode: data.pincode
       });
-      
       const user = await userResponse.json();
-      
-      // Then create business
       const businessResponse = await apiRequest("POST", "/api/businesses", {
         userId: user.user.id,
         businessName: data.businessName,
@@ -59,7 +52,7 @@ export default function GetStarted() {
         title: "Success!",
         description: "Business registered successfully. Please check your email for verification.",
       });
-      setLocation("/business-login");
+      setLocation("/merchant-dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -72,12 +65,10 @@ export default function GetStarted() {
 
   const customerSignupMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/auth/register", {
+      const response = await apiRequest("POST", "/api/auth/fake-login", {
         email: data.email,
-        password: "temp123", // Temporary password
         userType: "customer",
-        name: "Customer", // Temporary name
-        pincode: data.pincode
+        name: "Customer",
       });
       return response.json();
     },
@@ -86,7 +77,7 @@ export default function GetStarted() {
         title: "Success!",
         description: "Account created successfully. Please login to continue.",
       });
-      setLocation("/customer-login");
+      setLocation("/customer-dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -119,7 +110,7 @@ export default function GetStarted() {
     <section className="py-20 bg-baartal-blue text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Get Started with Baartal</h2>
+          <h2 className="text-4xl font-bold mb-4">Get Started with Prebucks</h2>
           <p className="text-xl opacity-90">Join Mumbai's growing community of smart local businesses</p>
         </div>
         
@@ -210,7 +201,7 @@ export default function GetStarted() {
                 className="w-full bg-baartal-orange text-white py-4 font-semibold hover:bg-orange-600"
                 disabled={businessSignupMutation.isPending}
               >
-                {businessSignupMutation.isPending ? "Joining..." : "Join Baartal Bundle"}
+                {businessSignupMutation.isPending ? "Joining..." : "Join Prebucks Network"}
               </Button>
             </form>
           </div>
@@ -257,7 +248,7 @@ export default function GetStarted() {
                     className="w-full bg-green-600 text-white py-3 font-medium hover:bg-green-700 flex items-center justify-center"
                   >
                     <span className="mr-2">📱</span>
-                    Join Baartal WhatsApp Channel
+                    Join Prebucks WhatsApp Channel
                   </Button>
                   <Button 
                     type="button"

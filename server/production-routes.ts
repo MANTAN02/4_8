@@ -53,6 +53,12 @@ export function createProductionRouter() {
   const storage = new DatabaseStorage();
   const authService = new AuthService(storage);
 
+  // Make storage available to middlewares like authenticateToken
+  router.use((req, _res, next) => {
+    req.app.locals.storage = storage;
+    next();
+  });
+
   // Apply rate limiting
   router.use('/api/auth', authLimiter);
   router.use('/api', generalLimiter);
@@ -100,11 +106,25 @@ export function createProductionRouter() {
       await storage.createNotification({
         userId: result.user.id,
         type: 'system',
-        title: 'Welcome to Baartal! 🎉',
-        message: `Welcome ${result.user.name}! Start exploring local businesses and earning B-Coins.`,
+        title: 'Welcome to Prebucks! 🎉',
+        message: `Welcome ${result.user.name}! Start exploring local businesses and earning Prebucks.`,
         data: JSON.stringify({ userType: result.user.userType }),
         isRead: false,
       });
+
+      // Initial signup bonus for customers: credit 200 Prebucks
+      if (result.user.userType === 'customer') {
+        try {
+          await storage.createBCoinTransaction({
+            customerId: result.user.id,
+            businessId: result.user.id, // self-issued for signup bonus tracking
+            type: 'earned',
+            amount: '0',
+            bCoinsChanged: '200',
+            description: 'Signup bonus: 200 Prebucks',
+          } as any);
+        } catch {}
+      }
       
       res.status(201).json(result);
     } catch (error) {
@@ -125,6 +145,54 @@ export function createProductionRouter() {
       res.json(result);
     } catch (error) {
       res.status(401).json({ error: "Invalid email or password" });
+    }
+  });
+
+  // FAKE PASSWORDLESS LOGIN: create or fetch by email and issue token
+  router.post("/api/auth/fake-login", async (req, res) => {
+    try {
+      const body = z.object({
+        email: z.string().email(),
+        name: z.string().optional(),
+        userType: z.enum(["customer", "business"]).default("customer"),
+      }).parse(req.body);
+
+      const email = body.email.toLowerCase();
+      let existing = await storage.getUserByEmail(email);
+      if (!existing) {
+        // create user with random password
+        const randomPwd = randomBytes(12).toString('hex') + 'Ab1!';
+        const result = await authService.register(email, randomPwd, body.name || email.split('@')[0], body.userType);
+        // Credit initial Prebucks for new customers
+        if (result.user.userType === 'customer') {
+          try {
+            await storage.createBCoinTransaction({
+              customerId: result.user.id,
+              businessId: result.user.id,
+              type: 'earned',
+              amount: '0',
+              bCoinsChanged: '200',
+              description: 'Signup bonus: 200 Prebucks',
+            } as any);
+          } catch {}
+        }
+        return res.json(result);
+      }
+
+      // If exists, just issue a token
+      const token = authService.generateToken({
+        id: existing.id,
+        email: existing.email,
+        userType: (existing as any).userType,
+        name: (existing as any).name,
+      });
+      const { password, ...userWithoutPassword } = existing as any;
+      return res.json({ user: userWithoutPassword, token });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed' });
+      }
+      return res.status(500).json({ error: 'Fake login failed' });
     }
   });
 
@@ -283,6 +351,28 @@ export function createProductionRouter() {
     }
   });
 
+  // Offers listing (public) - verified businesses with Prebucks rate
+  router.get("/api/offers", async (req, res) => {
+    try {
+      const list = await db
+        .select({
+          id: businesses.id,
+          businessName: businesses.businessName,
+          category: businesses.category,
+          pincode: businesses.pincode,
+          bCoinRate: businesses.bCoinRate,
+          isVerified: businesses.isVerified,
+          createdAt: businesses.createdAt,
+        })
+        .from(businesses)
+        .where(eq(businesses.isVerified, true))
+        .orderBy(desc(businesses.createdAt));
+      res.json(list.map(b => ({ ...b, offerPercent: b.bCoinRate })));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch offers" });
+    }
+  });
+
   // QR CODE ROUTES (Revenue Generation)
   router.post("/api/qr-codes", authenticateToken, requireBusiness, async (req: AuthenticatedRequest, res) => {
     try {
@@ -431,6 +521,25 @@ export function createProductionRouter() {
       res.json(balance || { customerId: req.params.customerId, totalBCoins: "0.00" });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch balance" });
+    }
+  });
+
+  // Convenience endpoints for authenticated customer wallet
+  router.get("/api/bcoin-balance/my", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+    try {
+      const balance = await storage.getCustomerBCoinBalance(req.user!.id);
+      res.json({ balance });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch balance" });
+    }
+  });
+
+  router.get("/api/bcoin-transactions/my", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+    try {
+      const transactions = await storage.getBCoinTransactionsByCustomer(req.user!.id);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch transactions" });
     }
   });
 
@@ -626,6 +735,246 @@ export function createProductionRouter() {
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch platform analytics" });
+    }
+  });
+
+  // Compatibility endpoints for current frontend
+  router.get("/api/businesses/user/:userId", authenticateToken, async (req, res) => {
+    try {
+      const businessesForUser = await storage.getBusinessesByUserId(req.params.userId);
+      res.json(businessesForUser[0] || null);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch business" });
+    }
+  });
+
+  router.put("/api/businesses/:id", authenticateToken, async (req, res) => {
+    try {
+      const updated = await storage.updateBusiness(req.params.id, req.body || {} as any);
+      if (!updated) return res.status(404).json({ error: "Business not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update business" });
+    }
+  });
+
+  router.get("/api/bundles", async (req, res) => {
+    try {
+      const bundlesList = await storage.getAllBundles();
+      const withBusinesses = await Promise.all(
+        bundlesList.map(async (bundle) => {
+          const businessesInBundle = await storage.getBundleBusinesses(bundle.id);
+          return { ...bundle, businesses: businessesInBundle };
+        })
+      );
+      res.json(withBusinesses);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bundles" });
+    }
+  });
+
+  router.get("/api/bundles/:id", async (req, res) => {
+    try {
+      const bundle = await storage.getBundleById(req.params.id);
+      if (!bundle) return res.status(404).json({ error: "Bundle not found" });
+      const businessesInBundle = await storage.getBundleBusinesses(bundle.id);
+      res.json({ ...bundle, businesses: businessesInBundle });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bundle" });
+    }
+  });
+
+  router.get("/api/customers/:userId/profile", authenticateToken, async (req, res) => {
+    try {
+      const customerId = req.params.userId;
+      const transactions = await storage.getBCoinTransactionsByCustomer(customerId);
+      const totals = transactions.reduce(
+        (acc, t) => {
+          const delta = parseFloat(t.bCoinsChanged.toString());
+          if (t.type === 'earned') {
+            acc.earned += delta;
+            acc.balance += delta;
+          } else if (t.type === 'redeemed' || t.type === 'spent') {
+            acc.spent += Math.abs(delta);
+            acc.balance -= Math.abs(delta);
+          }
+          return acc;
+        },
+        { earned: 0, spent: 0, balance: 0 }
+      );
+      res.json({
+        userId: customerId,
+        bCoinBalance: totals.balance.toFixed(2),
+        totalBCoinsEarned: totals.earned.toFixed(2),
+        totalBCoinsSpent: totals.spent.toFixed(2),
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch customer profile" });
+    }
+  });
+
+  router.put("/api/customers/:userId/profile", authenticateToken, async (req, res) => {
+    try {
+      const customerId = req.params.userId;
+      const transactions = await storage.getBCoinTransactionsByCustomer(customerId);
+      const balance = transactions.reduce((acc, t) => acc + parseFloat(t.bCoinsChanged.toString()), 0);
+      res.json({ userId: customerId, bCoinBalance: balance.toFixed(2) });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  router.get("/api/bcoin-transactions/user/:userId", authenticateToken, async (req, res) => {
+    try {
+      const tx = await storage.getBCoinTransactionsByCustomer(req.params.userId);
+      res.json(tx);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+  });
+
+  router.get("/api/bcoin-transactions/business/:businessId", authenticateToken, async (req, res) => {
+    try {
+      const tx = await storage.getBCoinTransactionsByBusiness(req.params.businessId);
+      res.json(tx);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+  });
+
+  router.post("/api/scan-qr", authenticateToken, async (req, res) => {
+    try {
+      const { qrCode, customerId, billAmount } = req.body || {};
+      if (!qrCode || !customerId || !billAmount) {
+        return res.status(400).json({ error: "qrCode, customerId and billAmount are required" });
+      }
+      const qr = await storage.getQrCodeById(qrCode);
+      if (!qr || qr.isUsed) {
+        return res.status(404).json({ error: "Invalid or used QR code" });
+      }
+      const business = await storage.getBusinessById(qr.businessId);
+      if (!business) {
+        return res.status(404).json({ error: "Business not found" });
+      }
+      const rate = business.bCoinRate ? parseFloat(business.bCoinRate) : 5.0;
+      const earned = (parseFloat(billAmount) * rate) / 100;
+      const tx = await storage.createBCoinTransaction({
+        customerId,
+        businessId: business.id,
+        type: 'earned',
+        amount: billAmount,
+        bCoinsChanged: earned.toString(),
+        description: `Earned from ${business.businessName}`,
+        qrCodeId: qr.id,
+      });
+      res.json({ transaction: tx, bCoinsEarned: earned.toFixed(2), business: business.businessName });
+    } catch (error) {
+      res.status(500).json({ error: "QR scan failed" });
+    }
+  });
+
+  // Redeem preview: compute discount and net amount including payment fees
+  router.post("/api/redeem/preview", authenticateToken, async (req, res) => {
+    try {
+      const { customerId, businessId, billAmount, requestedDiscount } = req.body || {};
+      if (!customerId || !businessId || !billAmount) {
+        return res.status(400).json({ error: "customerId, businessId, billAmount required" });
+      }
+
+      const txs = await storage.getBCoinTransactionsByCustomer(customerId);
+      const balance = txs.reduce((acc, t) => acc + parseFloat(t.bCoinsChanged.toString()), 0);
+      const bill = parseFloat(billAmount);
+      const want = Math.max(0, parseFloat(requestedDiscount || 0));
+      const discount = Math.min(balance, want, bill);
+
+      // Payment fee rules (PhonePe-like placeholder): 0 for UPI, 1.2% for card, 0.5% if bill>2000
+      const method = (req.body.method || 'upi') as 'upi' | 'card';
+      let fee = 0;
+      if (method === 'card') fee = 0.012 * (bill - discount);
+      if (bill > 2000) fee += 0.005 * (bill - discount);
+
+      const netPayable = Math.max(0, bill - discount) + fee;
+      res.json({
+        balance: balance.toFixed(2),
+        discount: discount.toFixed(2),
+        fee: fee.toFixed(2),
+        netPayable: netPayable.toFixed(2),
+        method,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to preview redemption" });
+    }
+  });
+
+  // PhonePe initiate (mock)
+  router.post("/api/payments/phonepe/initiate", authenticateToken, async (req, res) => {
+    try {
+      const { customerId, businessId, billAmount, discount, method = 'upi' } = req.body || {};
+      if (!customerId || !businessId || !billAmount) {
+        return res.status(400).json({ error: "customerId, businessId, billAmount required" });
+      }
+      const bill = parseFloat(billAmount);
+      const disc = Math.max(0, parseFloat(discount || 0));
+      const amountToPay = Math.max(0, bill - disc);
+      // Generate a mock payment request id
+      const paymentRequestId = `pp_${Date.now()}`;
+      res.json({ paymentRequestId, amountToPay: amountToPay.toFixed(2), method });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to initiate payment" });
+    }
+  });
+
+  // PhonePe confirm (mock) — records spend and merchant credited
+  router.post("/api/payments/phonepe/confirm", authenticateToken, async (req, res) => {
+    try {
+      const { customerId, businessId, billAmount, discount, paymentRequestId } = req.body || {};
+      if (!customerId || !businessId || !billAmount || !paymentRequestId) {
+        return res.status(400).json({ error: "customerId, businessId, billAmount, paymentRequestId required" });
+      }
+      const bill = parseFloat(billAmount);
+      const disc = Math.max(0, parseFloat(discount || 0));
+      const spend = Math.min(disc, bill);
+
+      // Deduct Prebucks (record negative change)
+      if (spend > 0) {
+        await storage.createBCoinTransaction({
+          customerId,
+          businessId,
+          type: 'redeemed',
+          amount: billAmount,
+          bCoinsChanged: (-spend).toString(),
+          description: `Redeemed Prebucks on bill ₹${bill.toFixed(2)}`,
+        });
+      }
+
+      // Record earn from purchase at merchant rate
+      const business = await storage.getBusinessById(businessId);
+      const rate = business?.bCoinRate ? parseFloat(business.bCoinRate) : 0;
+      const earned = (bill * rate) / 100;
+      if (earned > 0) {
+        await storage.createBCoinTransaction({
+          customerId,
+          businessId,
+          type: 'earned',
+          amount: billAmount,
+          bCoinsChanged: earned.toString(),
+          description: `Earned Prebucks from ${business?.businessName || 'merchant'}`,
+        });
+      }
+
+      // Simulate settlement to merchant via UPI (no platform fee)
+      const cashToMerchant = bill - spend; // customer pays net after discount
+      // In real integration, confirm via PhonePe API and track settlement id
+
+      res.json({
+        success: true,
+        paymentRequestId,
+        cashToMerchant: cashToMerchant.toFixed(2),
+        prebucksSpent: spend.toFixed(2),
+        prebucksEarned: earned.toFixed(2),
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to confirm payment" });
     }
   });
 

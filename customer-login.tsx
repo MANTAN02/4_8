@@ -18,8 +18,7 @@ export default function CustomerLogin() {
   const { toast } = useToast();
   
   const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: ""
+    email: ""
   });
 
   const [signupForm, setSignupForm] = useState({
@@ -31,12 +30,13 @@ export default function CustomerLogin() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: { email: string; password: string }) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+    mutationFn: async (data: { email: string }) => {
+      const response = await apiRequest("POST", "/api/auth/fake-login", { email: data.email, userType: "customer" });
       return response.json();
     },
     onSuccess: (data) => {
       authService.setUser(data.user);
+      if (data.token) authService.setToken(data.token);
       toast({
         title: "Welcome back!",
         description: "You have been logged in successfully.",
@@ -54,16 +54,14 @@ export default function CustomerLogin() {
 
   const signupMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/auth/register", {
-        ...data,
-        userType: "customer"
-      });
+      const response = await apiRequest("POST", "/api/auth/fake-login", { email: data.email, userType: "customer", name: data.name });
       return response.json();
     },
     onSuccess: (data) => {
       authService.setUser(data.user);
+      if (data.token) authService.setToken(data.token);
       toast({
-        title: "Welcome to Baartal!",
+        title: "Welcome to Prebucks!",
         description: "Your account has been created successfully.",
       });
       setLocation("/customer-dashboard");
@@ -142,9 +140,9 @@ export default function CustomerLogin() {
           <CardHeader className="text-center">
             <div className="flex items-center justify-center text-2xl font-bold text-baartal-orange mb-2">
               <Coins className="mr-2" />
-              Baartal
+              Prebucks
             </div>
-            <CardTitle className="text-xl text-baartal-blue">Shop Local. Barter Better. Earn B-Coins.</CardTitle>
+            <CardTitle className="text-xl text-baartal-blue">Shop Local. Save More. Earn Prebucks.</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
@@ -167,18 +165,7 @@ export default function CustomerLogin() {
                       type="email"
                       placeholder="Enter your email"
                       value={loginForm.email}
-                      onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                       required
                     />
                   </div>
@@ -187,15 +174,7 @@ export default function CustomerLogin() {
                     className="w-full bg-baartal-orange hover:bg-orange-600 text-white"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Logging in..." : "Login as Customer"}
-                  </Button>
-                  <Button
-                    type="button"
-                    className="w-full mt-2 bg-white border border-gray-300 text-baartal-blue hover:bg-gray-100 flex items-center justify-center"
-                    onClick={handleGoogleSignIn}
-                  >
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5 mr-2" />
-                    Sign in with Google
+                    {loginMutation.isPending ? "Logging in..." : "Login with Email"}
                   </Button>
                 </form>
               </TabsContent>
@@ -209,8 +188,7 @@ export default function CustomerLogin() {
                       type="text"
                       placeholder="Enter your full name"
                       value={signupForm.name}
-                      onChange={(e) => setSignupForm({...signupForm, name: e.target.value})}
-                      required
+                      onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                     />
                   </div>
                   <div>
@@ -220,40 +198,7 @@ export default function CustomerLogin() {
                       type="email"
                       placeholder="Enter your email"
                       value={signupForm.email}
-                      onChange={(e) => setSignupForm({...signupForm, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+91 9876543210"
-                      value={signupForm.phone}
-                      onChange={(e) => setSignupForm({...signupForm, phone: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="pincode">Pincode</Label>
-                    <Input
-                      id="pincode"
-                      type="text"
-                      placeholder="Enter your area pincode"
-                      value={signupForm.pincode}
-                      onChange={(e) => setSignupForm({...signupForm, pincode: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({...signupForm, password: e.target.value})}
+                      onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                       required
                     />
                   </div>
@@ -262,7 +207,7 @@ export default function CustomerLogin() {
                     className="w-full bg-baartal-blue hover:bg-blue-800 text-white"
                     disabled={signupMutation.isPending}
                   >
-                    {signupMutation.isPending ? "Creating Account..." : "Register as Customer"}
+                    {signupMutation.isPending ? "Creating Account..." : "Continue with Email"}
                   </Button>
                 </form>
               </TabsContent>

@@ -19,8 +19,7 @@ export default function BusinessLogin() {
   const { toast } = useToast();
   
   const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: ""
+    email: ""
   });
 
   const [signupForm, setSignupForm] = useState({
@@ -36,8 +35,8 @@ export default function BusinessLogin() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: { email: string; password: string }) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+    mutationFn: async (data: { email: string }) => {
+      const response = await apiRequest("POST", "/api/auth/fake-login", { email: data.email, userType: "business" });
       return response.json();
     },
     onSuccess: (data) => {
@@ -50,6 +49,7 @@ export default function BusinessLogin() {
         return;
       }
       authService.setUser(data.user);
+      if (data.token) authService.setToken(data.token);
       toast({
         title: "Welcome back!",
         description: "You have been logged in successfully.",
@@ -67,19 +67,8 @@ export default function BusinessLogin() {
 
   const signupMutation = useMutation({
     mutationFn: async (data: any) => {
-      // First register user
-      const userResponse = await apiRequest("POST", "/api/auth/register", {
-        email: data.email,
-        password: data.password,
-        userType: "business",
-        name: data.ownerName,
-        phone: data.phone,
-        pincode: data.pincode
-      });
-      
+      const userResponse = await apiRequest("POST", "/api/auth/fake-login", { email: data.email, userType: "business", name: data.ownerName });
       const user = await userResponse.json();
-      
-      // Then create business
       const businessResponse = await apiRequest("POST", "/api/businesses", {
         userId: user.user.id,
         businessName: data.businessName,
@@ -88,13 +77,12 @@ export default function BusinessLogin() {
         pincode: data.pincode,
         address: data.address
       });
-      
       return { user: user.user, business: await businessResponse.json() };
     },
     onSuccess: (data) => {
       authService.setUser(data.user);
       toast({
-        title: "Welcome to Baartal!",
+        title: "Welcome to Prebucks!",
         description: "Your business has been registered successfully.",
       });
       setLocation("/merchant-dashboard");
@@ -144,6 +132,7 @@ export default function BusinessLogin() {
         return;
       }
       authService.setUser(data.user);
+      if (data.token) authService.setToken(data.token);
       toast({
         title: "Welcome!",
         description: "Signed in with Google successfully.",
@@ -188,7 +177,7 @@ export default function BusinessLogin() {
           <CardHeader className="text-center">
             <div className="flex items-center justify-center text-2xl font-bold text-baartal-orange mb-2">
               <Coins className="mr-2" />
-              Baartal
+              Prebucks
             </div>
             <CardTitle className="text-xl text-baartal-blue">Business Portal</CardTitle>
             <p className="text-sm text-gray-600">Join Mumbai's local business community</p>
@@ -326,18 +315,7 @@ export default function BusinessLogin() {
                       type="email"
                       placeholder="Enter your email"
                       value={loginForm.email}
-                      onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                       required
                     />
                   </div>
@@ -346,7 +324,7 @@ export default function BusinessLogin() {
                     className="w-full bg-baartal-blue hover:bg-blue-800 text-white"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Logging in..." : "Login to Dashboard"}
+                    {loginMutation.isPending ? "Logging in..." : "Login with Email"}
                   </Button>
                 </form>
               </TabsContent>
