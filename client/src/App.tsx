@@ -17,6 +17,8 @@ import EnhancedBusinessDashboard from "@/pages/EnhancedBusinessDashboard";
 import ExploreBusiness from "@/pages/ExploreBusiness";
 import QRScanner from "@/pages/QRScanner";
 import QRCodes from "@/pages/QRCodes";
+import ShopCategories from "@/pages/ShopCategories";
+import ShopsByCategory from "@/pages/ShopsByCategory";
 import NotFound from "@/pages/NotFound";
 
 function AppRouter() {
@@ -49,6 +51,8 @@ function AppRouter() {
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
         <Route path="/explore" component={ExploreBusiness} />
+        <Route path="/categories" component={ShopCategories} />
+        <Route path="/shops" component={ShopsByCategory} />
         
         {/* Protected Routes */}
         <Route path="/dashboard" component={user?.userType === "customer" ? EnhancedCustomerDashboard : () => <div>Access Denied</div>} />

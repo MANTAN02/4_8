@@ -1,20 +1,17 @@
 // Business Categories Constants
 export const BUSINESS_CATEGORIES = [
-  { value: "electronics", label: "Electronics / Gadgets", icon: "Smartphone" },
-  { value: "clothing", label: "Clothing Store (general)", icon: "ShirtIcon" },
-  { value: "restaurant", label: "Food / Restaurant", icon: "UtensilsCrossed" },
-  { value: "salon", label: "Salon / Beauty", icon: "Scissors" },
-  { value: "footwear", label: "Footwear", icon: "Footprints" },
-  { value: "cafe", label: "Café / Ice Cream", icon: "Coffee" },
-  { value: "gifts", label: "Gift / Toy Shop", icon: "Gift" },
-  { value: "pharmacy", label: "Medicine / Wellness / Pharmacy", icon: "Cross" },
-  { value: "stationery", label: "Stationery", icon: "PenTool" },
-  { value: "ethnic-wear", label: "Ethnic Wear Store", icon: "Crown" },
-  { value: "kids-clothing", label: "Kids' Clothing Store", icon: "Baby" },
-  { value: "formal-wear", label: "Casual / Formal Wear Store", icon: "Shirt" },
-  { value: "cosmetics", label: "Cosmetics / Beauty / Perfume Store", icon: "Sparkles" },
-  { value: "turf", label: "Turf Ground (football, cricket, box cricket)", icon: "Trophy" },
-  { value: "beauty-parlour", label: "Beauty Parlour (facials, bridal makeup, skincare)", icon: "Heart" }
+  { value: "restaurant", label: "Restaurant", icon: "UtensilsCrossed", color: "bg-red-500", description: "Delicious dining experiences" },
+  { value: "cafe", label: "Café", icon: "Coffee", color: "bg-amber-600", description: "Coffee, snacks & casual bites" },
+  { value: "clothes", label: "Clothes", icon: "Shirt", color: "bg-purple-500", description: "Fashion & apparel stores" },
+  { value: "gift", label: "Gift Shop", icon: "Gift", color: "bg-pink-500", description: "Perfect gifts for every occasion" },
+  { value: "accessories", label: "Accessories", icon: "Gem", color: "bg-indigo-500", description: "Jewelry, bags & fashion accessories" },
+  { value: "salon", label: "Salon", icon: "Scissors", color: "bg-rose-500", description: "Beauty & grooming services" },
+  { value: "medical", label: "Medical", icon: "Cross", color: "bg-green-600", description: "Healthcare & pharmacy services" },
+  { value: "footwear", label: "Footwear", icon: "Footprints", color: "bg-orange-500", description: "Shoes, sandals & boots" },
+  { value: "eyewear", label: "Eyewear", icon: "Glasses", color: "bg-blue-600", description: "Glasses, sunglasses & lenses" },
+  { value: "repair", label: "Repair Services", icon: "Wrench", color: "bg-yellow-600", description: "Fix & maintenance services" },
+  { value: "mobile", label: "Mobile & Electronics", icon: "Smartphone", color: "bg-cyan-600", description: "Phones, gadgets & accessories" },
+  { value: "plastic", label: "Plastic & Home", icon: "Package", color: "bg-teal-600", description: "Plastic goods & home essentials" }
 ];
 
 // Category filter options for UI components

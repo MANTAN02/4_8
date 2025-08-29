@@ -169,10 +169,22 @@ export function createRouter(storage: IStorage) {
       } else if (pincode) {
         businesses = await storage.getBusinessesByPincode(pincode as string);
       } else {
-        return res.status(400).json({ error: "Category or pincode is required" });
+        // Return all businesses if no filter provided
+        businesses = await storage.getAllBusinesses();
       }
       
       res.json(businesses);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get business categories endpoint
+  router.get("/api/categories", async (req, res) => {
+    try {
+      // Import categories from constants
+      const { BUSINESS_CATEGORIES } = await import("@shared/constants");
+      res.json(BUSINESS_CATEGORIES);
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
     }
