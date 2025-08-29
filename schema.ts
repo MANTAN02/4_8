@@ -79,9 +79,8 @@ export const ratings = pgTable("ratings", {
 export const qrCodes = pgTable("qr_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   businessId: varchar("business_id").references(() => businesses.id).notNull(),
-  code: text("code").notNull().unique(),
+  code: text("code").notNull().unique(), // This is the physical QR code displayed at shop
   isActive: boolean("is_active").default(true),
-  expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -116,14 +115,15 @@ export type InsertQRCode = z.infer<typeof insertQRCodeSchema>;
 
 // Business categories
 export const BUSINESS_CATEGORIES = [
-  { value: "kirana", label: "Kirana / Grocery" },
-  { value: "electronics", label: "Electronics / Gadgets" },
-  { value: "clothing", label: "Clothing Store" },
-  { value: "food", label: "Food / Restaurant" },
-  { value: "salon", label: "Salon / Beauty" },
+  { value: "clothes", label: "Clothes" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "cafe", label: "Cafe" },
+  { value: "salon", label: "Salon" },
+  { value: "gift", label: "Gift" },
+  { value: "accessories", label: "Accessories" },
+  { value: "medical", label: "Medical" },
+  { value: "decorations", label: "Decorations" },
   { value: "footwear", label: "Footwear" },
-  { value: "cafe", label: "Cafe / Ice Cream" },
-  { value: "gifts", label: "Gift / Toy" },
-  { value: "medicine", label: "Medicine / Wellness" },
-  { value: "stationery", label: "Stationery / School" },
+  { value: "eyewear", label: "Eyewear" },
+  { value: "gym", label: "Gyms/Fitness" },
 ] as const;

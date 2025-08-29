@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { QrCode, Camera, DollarSign, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -15,53 +15,76 @@ interface QRScannerProps {
 
 export default function EnhancedQRScanner({ customerId, onScanComplete }: QRScannerProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [qrCode, setQrCode] = useState("");
-  const [billAmount, setBillAmount] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<any>(null);
+  const [billAmount, setBillAmount] = useState("");
+  const [prebucksToUse, setPrebucksToUse] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"upi" | "card">("upi");
 
   const scanMutation = useMutation({
-    mutationFn: async (data: { qrCode: string; billAmount: string }) => {
-      const response = await apiRequest("POST", "/api/scan-qr", {
-        customerId,
-        ...data,
+    mutationFn: async (data: { qrCode: string }) => {
+      const response = await apiRequest("POST", "/api/shop/scan-qr", {
+        qrCode: data.qrCode,
       });
       return response.json();
     },
     onSuccess: (data) => {
       setScanResult(data);
       toast({
-        title: "Success! 🎉",
-        description: `You earned ₹${data.bCoinsEarned.toFixed(2)} B-Coins from ${data.business.businessName}!`,
+        title: "Shop Found! 🏪",
+        description: `Welcome to ${data.shop.name}! You can now pay with Prebucks.`,
       });
-      onScanComplete();
       setQrCode("");
-      setBillAmount("");
     },
     onError: (error: any) => {
       toast({
-        title: "Scan Failed",
-        description: error.message || "Unable to process QR code. Please try again.",
+        title: "QR Code Invalid",
+        description: error.message || "Unable to find shop. Please check the QR code.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const payMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/shop/pay", {
+        shopId: scanResult?.shop?.id,
+        billAmount,
+        prebucksToUse,
+        paymentMethod,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Payment Successful",
+        description: `Paid ₹${data.payment.cashPaid.toFixed(2)} + ₹${data.payment.prebucksUsed.toFixed(2)} Prebucks. Earned ₹${data.payment.newPrebucksEarned.toFixed(2)}.`,
+      });
+      // Refresh wallet and transactions
+      queryClient.invalidateQueries({ queryKey: ["/api/customers", customerId, "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bcoin-transactions/user", customerId] });
+      setBillAmount("");
+      setPrebucksToUse("");
+      setPaymentMethod("upi");
+      setScanResult(null);
+      onScanComplete();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Payment Failed",
+        description: error?.message || "Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const handleScan = () => {
-    if (!qrCode.trim() || !billAmount.trim()) {
+    if (!qrCode.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please enter both QR code and bill amount.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const amount = parseFloat(billAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid bill amount.",
+        description: "Please enter the QR code from the shop.",
         variant: "destructive",
       });
       return;
@@ -69,7 +92,6 @@ export default function EnhancedQRScanner({ customerId, onScanComplete }: QRScan
 
     scanMutation.mutate({
       qrCode: qrCode.trim(),
-      billAmount: amount.toFixed(2),
     });
   };
 
@@ -91,20 +113,67 @@ export default function EnhancedQRScanner({ customerId, onScanComplete }: QRScan
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-baartal-blue mb-2">Transaction Complete!</h3>
+          <h3 className="text-xl font-bold text-baartal-blue mb-2">Shop Found!</h3>
           <div className="space-y-2 text-sm text-gray-600">
-            <p><strong>Business:</strong> {scanResult.business.businessName}</p>
-            <p><strong>Bill Amount:</strong> ₹{scanResult.transaction.billAmount}</p>
+            <p><strong>Shop:</strong> {scanResult.shop.name}</p>
+            <p><strong>Category:</strong> {scanResult.shop.category}</p>
+            <p><strong>Address:</strong> {scanResult.shop.address}</p>
             <p className="text-lg font-bold text-baartal-orange">
-              <strong>B-Coins Earned:</strong> ₹{scanResult.bCoinsEarned.toFixed(2)}
+              <strong>Prebucks Rate:</strong> {scanResult.shop.bCoinRate}%
             </p>
           </div>
-          <Button 
-            onClick={() => setScanResult(null)} 
-            className="mt-4 bg-baartal-orange hover:bg-orange-600"
-          >
-            Scan Another QR
-          </Button>
+          <div className="mt-6 text-left space-y-3">
+            <div>
+              <Label htmlFor="bill">Bill Amount (₹)</Label>
+              <Input
+                id="bill"
+                type="number"
+                min="0"
+                step="0.01"
+                value={billAmount}
+                onChange={(e) => setBillAmount(e.target.value)}
+                placeholder="e.g., 750"
+              />
+            </div>
+            <div>
+              <Label htmlFor="prebucks">Use Prebucks (₹)</Label>
+              <Input
+                id="prebucks"
+                type="number"
+                min="0"
+                step="0.01"
+                value={prebucksToUse}
+                onChange={(e) => setPrebucksToUse(e.target.value)}
+                placeholder="e.g., 100"
+              />
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>Method:</span>
+              <Button type="button" variant={paymentMethod === "upi" ? "default" : "outline"} onClick={() => setPaymentMethod("upi")}>UPI</Button>
+              <Button type="button" variant={paymentMethod === "card" ? "default" : "outline"} onClick={() => setPaymentMethod("card")}>Card</Button>
+            </div>
+            {billAmount && (
+              <div className="bg-baartal-cream p-3 rounded-lg text-sm text-gray-700">
+                <div>Estimated earn: ₹{((parseFloat(billAmount || "0") * (parseFloat(scanResult.shop.bCoinRate) || 5)) / 100).toFixed(2)}</div>
+              </div>
+            )}
+            <div className="pt-2 space-y-2">
+              <Button
+                className="w-full bg-baartal-orange hover:bg-orange-600"
+                disabled={!billAmount || payMutation.isPending}
+                onClick={() => payMutation.mutate()}
+              >
+                {payMutation.isPending ? "Processing..." : "Confirm & Pay"}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setScanResult(null)} 
+                className="w-full"
+              >
+                Scan Another QR
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -165,48 +234,12 @@ export default function EnhancedQRScanner({ customerId, onScanComplete }: QRScan
         </CardContent>
       </Card>
 
-      {/* Bill Amount Section */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="text-center">
-              <DollarSign className="h-8 w-8 text-baartal-orange mx-auto mb-2" />
-              <h3 className="text-lg font-semibold text-baartal-blue">Bill Amount</h3>
-              <p className="text-sm text-gray-600">Enter your total bill amount</p>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="billAmount">Amount (₹)</Label>
-              <Input
-                id="billAmount"
-                type="number"
-                value={billAmount}
-                onChange={(e) => setBillAmount(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            {billAmount && (
-              <div className="bg-baartal-cream p-3 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  Estimated B-Coins to earn: 
-                  <span className="font-bold text-baartal-orange ml-1">
-                    ₹{(parseFloat(billAmount) * 0.05).toFixed(2)}
-                  </span>
-                  <span className="text-xs text-gray-500 ml-1">(5% of bill)</span>
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Scan Button */}
       <Button
         onClick={handleScan}
-        disabled={!qrCode.trim() || !billAmount.trim() || scanMutation.isPending}
+        disabled={!qrCode.trim() || scanMutation.isPending}
         className="w-full bg-baartal-orange hover:bg-orange-600 text-white"
         size="lg"
       >
@@ -218,15 +251,15 @@ export default function EnhancedQRScanner({ customerId, onScanComplete }: QRScan
         ) : (
           <>
             <CheckCircle className="mr-2 h-4 w-4" />
-            Earn B-Coins
+            Find Shop
           </>
         )}
       </Button>
 
       {/* Help Text */}
       <div className="text-center text-xs text-gray-500 space-y-1">
-        <p>Show this screen to the merchant to scan their QR code</p>
-        <p>You'll earn 5% of your bill amount as B-Coins</p>
+        <p>Scan the QR code displayed at the shop to find shop details</p>
+        <p>After scanning, you can pay with Prebucks and earn new ones</p>
       </div>
     </div>
   );

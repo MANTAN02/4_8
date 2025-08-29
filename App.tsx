@@ -15,6 +15,14 @@ import FAQ from "@/pages/enhanced-faq";
 import Contact from "@/pages/enhanced-contact";
 import Privacy from "@/pages/privacy";
 import NotFound from "@/pages/not-found";
+import Offers from "@/pages/offers";
+import Bundles from "@/pages/bundles";
+import FloatingScan from "@/components/floating-scan";
+import { ErrorBoundary } from "@/components/error-boundary";
+import WalletPage from "@/pages/wallet";
+import NotificationsPage from "@/pages/notifications";
+import HelpPage from "@/pages/help";
+import MerchantQRPoster from "@/pages/merchant-qr-poster";
 
 function Router() {
   return (
@@ -27,6 +35,12 @@ function Router() {
       <Route path="/customer-dashboard" component={CustomerDashboard} />
       <Route path="/merchant-dashboard" component={MerchantDashboard} />
       <Route path="/about" component={About} />
+      <Route path="/offers" component={Offers} />
+      <Route path="/bundles" component={Bundles} />
+      <Route path="/wallet" component={WalletPage} />
+      <Route path="/notifications" component={NotificationsPage} />
+      <Route path="/help" component={HelpPage} />
+      <Route path="/merchant/qr-poster" component={MerchantQRPoster} />
       <Route path="/faq" component={FAQ} />
       <Route path="/contact" component={Contact} />
       <Route path="/privacy" component={Privacy} />
@@ -40,7 +54,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <ErrorBoundary>
+          <Router />
+          <FloatingScan />
+        </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>
   );

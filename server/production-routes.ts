@@ -373,30 +373,29 @@ export function createProductionRouter() {
     }
   });
 
-  // QR CODE ROUTES (Revenue Generation)
+  // QR CODE GENERATION (For merchants to display at shops)
   router.post("/api/qr-codes", authenticateToken, requireBusiness, async (req: AuthenticatedRequest, res) => {
     try {
-      const qrData = insertQrCodeSchema.parse(req.body);
       const businesses = await storage.getBusinessesByUserId(req.user!.id);
       
       if (!businesses[0]) {
         return res.status(404).json({ error: "Business not found" });
       }
 
-      // Validate amount
-      const amount = parseFloat(qrData.amount);
-      if (amount < 10 || amount > 50000) {
-        return res.status(400).json({ error: "Amount must be between ₹10 and ₹50,000" });
-      }
-
+      // Generate unique QR code for the shop
+      const qrCodeValue = `PREBUCKS_${businesses[0].id}_${Date.now()}`;
+      
       const qrCode = await storage.createQrCode({
-        ...qrData,
-        id: randomBytes(16).toString('hex'),
         businessId: businesses[0].id,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        code: qrCodeValue,
+        isActive: true,
       });
       
-      res.status(201).json(qrCode);
+      res.status(201).json({
+        ...qrCode,
+        displayCode: qrCodeValue, // This is what gets displayed as QR at shop
+        message: "QR code generated successfully. Display this at your shop for customers to scan."
+      });
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Failed to create QR code" });
     }
@@ -416,96 +415,161 @@ export function createProductionRouter() {
     }
   });
 
-  // QR SCANNING (Core Revenue Feature)
-  router.post("/api/qr-codes/:id/scan", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+  // SHOP QR CODE SCANNING (Customer scans physical QR at shop)
+  router.post("/api/shop/scan-qr", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
     try {
-      const qrCode = await storage.getQrCodeById(req.params.id);
+      const { qrCode } = req.body;
       
       if (!qrCode) {
-        return res.status(404).json({ error: "QR code not found" });
+        return res.status(400).json({ error: "QR code is required" });
       }
       
-      if (qrCode.isUsed) {
-        return res.status(400).json({ error: "QR code already used" });
+      // Find the shop by QR code
+      const shopQR = await storage.getQrCodeByCode(qrCode);
+      if (!shopQR || !shopQR.isActive) {
+        return res.status(404).json({ error: "Invalid or inactive QR code" });
       }
-      
-      if (qrCode.expiresAt && new Date() > qrCode.expiresAt) {
-        return res.status(400).json({ error: "QR code expired" });
-      }
-      
-      // Mark QR as used
-      await storage.useQrCode(qrCode.id, req.user!.id);
       
       // Get business info
-      const business = await storage.getBusinessById(qrCode.businessId);
+      const business = await storage.getBusinessById(shopQR.businessId);
       if (!business) {
         return res.status(404).json({ error: "Business not found" });
       }
       
-      // Calculate B-Coins earned (Platform takes 5% commission)
-      const purchaseAmount = parseFloat(qrCode.amount);
-      const bCoinRate = business.bCoinRate ? parseFloat(business.bCoinRate) : 5.0;
-      const bCoinsEarned = (purchaseAmount * bCoinRate) / 100;
-      const platformCommission = bCoinsEarned * 0.05; // 5% platform fee
-      const actualBCoinsEarned = bCoinsEarned - platformCommission;
-      
-      // Create transaction
-      const transaction = await storage.createBCoinTransaction({
-        customerId: req.user!.id,
-        businessId: business.id,
-        type: 'earned',
-        amount: qrCode.amount,
-        bCoinsChanged: actualBCoinsEarned.toString(),
-        description: `Earned from ${business.businessName} (Platform fee: ₹${platformCommission.toFixed(2)})`,
-        qrCodeId: qrCode.id,
+      // Return shop details for payment
+      res.json({
+        success: true,
+        shop: {
+          id: business.id,
+          name: business.businessName,
+          category: business.category,
+          address: business.address,
+          pincode: business.pincode,
+          bCoinRate: business.bCoinRate || "5.00",
+          description: business.description
+        },
+        message: `Welcome to ${business.businessName}! You can now pay with Prebucks.`
       });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to scan shop QR code" });
+    }
+  });
+
+  // PAYMENT WITH PREBUCKS (After scanning shop QR)
+  router.post("/api/shop/pay", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { shopId, billAmount, prebucksToUse, paymentMethod = 'upi' } = req.body;
       
-      // Create platform revenue transaction (for tracking)
+      if (!shopId || !billAmount) {
+        return res.status(400).json({ error: "Shop ID and bill amount are required" });
+      }
+      
+      // Get business info
+      const business = await storage.getBusinessById(shopId);
+      if (!business) {
+        return res.status(404).json({ error: "Business not found" });
+      }
+      
+      // Get customer balance
+      const customerBalance = await storage.getCustomerBCoinBalance(req.user!.id);
+      const availablePrebucks = customerBalance || 0;
+      
+      // Validate Prebucks usage
+      const prebucksAmount = Math.min(parseFloat(prebucksToUse || "0"), availablePrebucks, parseFloat(billAmount));
+      const cashAmount = parseFloat(billAmount) - prebucksAmount;
+      
+      // Calculate new Prebucks earned from this purchase
+      const bCoinRate = business.bCoinRate ? parseFloat(business.bCoinRate) : 5.0;
+      const newPrebucksEarned = (parseFloat(billAmount) * bCoinRate) / 100;
+      const platformCommission = newPrebucksEarned * 0.05; // 5% platform fee
+      const actualPrebucksEarned = newPrebucksEarned - platformCommission;
+      
+      // Create transactions
+      const transactions = [];
+      
+      // If using Prebucks, create redemption transaction
+      if (prebucksAmount > 0) {
+        const redemptionTx = await storage.createBCoinTransaction({
+          customerId: req.user!.id,
+          businessId: shopId,
+          type: 'redeemed',
+          amount: billAmount,
+          bCoinsChanged: (-prebucksAmount).toString(),
+          description: `Redeemed Prebucks at ${business.businessName}`,
+        });
+        transactions.push(redemptionTx);
+      }
+      
+      // Create earning transaction for new Prebucks
+      const earningTx = await storage.createBCoinTransaction({
+        customerId: req.user!.id,
+        businessId: shopId,
+        type: 'earned',
+        amount: billAmount,
+        bCoinsChanged: actualPrebucksEarned.toString(),
+        description: `Earned Prebucks from ${business.businessName} (Platform fee: ₹${platformCommission.toFixed(2)})`,
+      });
+      transactions.push(earningTx);
+      
+      // Create platform revenue transaction
       await storage.createBCoinTransaction({
-        customerId: 'platform-revenue', // Special ID for platform
-        businessId: business.id,
+        customerId: 'platform-revenue',
+        businessId: shopId,
         type: 'platform_fee',
-        amount: qrCode.amount,
+        amount: billAmount,
         bCoinsChanged: platformCommission.toString(),
         description: `Platform commission from ${business.businessName}`,
-        qrCodeId: qrCode.id,
       });
       
       // Send notifications
       await Promise.all([
         storage.createNotification({
           userId: req.user!.id,
-          type: 'bcoin_earned',
-          title: 'B-Coins Earned! 🪙',
-          message: `You earned ₹${actualBCoinsEarned.toFixed(2)} B-Coins at ${business.businessName}`,
-          data: JSON.stringify({ businessId: business.id, amount: actualBCoinsEarned }),
+          type: 'payment_successful',
+          title: 'Payment Successful! 💳',
+          message: `You paid ₹${cashAmount.toFixed(2)} + ₹${prebucksAmount.toFixed(2)} Prebucks at ${business.businessName}`,
+          data: JSON.stringify({ 
+            businessId: shopId, 
+            billAmount, 
+            prebucksUsed: prebucksAmount,
+            prebucksEarned: actualPrebucksEarned 
+          }),
           isRead: false,
         }),
         storage.createNotification({
           userId: business.userId,
-          type: 'qr_scanned',
-          title: 'QR Code Scanned! 📱',
-          message: `Customer scanned your QR code for ₹${qrCode.amount}`,
-          data: JSON.stringify({ customerId: req.user!.id, amount: qrCode.amount }),
+          type: 'payment_received',
+          title: 'Payment Received! 💰',
+          message: `Customer paid ₹${billAmount} (₹${prebucksAmount} Prebucks + ₹${cashAmount} cash)`,
+          data: JSON.stringify({ 
+            customerId: req.user!.id, 
+            billAmount, 
+            prebucksRedeemed: prebucksAmount 
+          }),
           isRead: false,
         })
       ]);
       
       // Real-time notifications
       if (wsManager) {
-        wsManager.notifyBCoinEarned(req.user!.id, actualBCoinsEarned, business.businessName);
-        wsManager.notifyQRScanned(business.userId, req.user!.name, purchaseAmount);
+        wsManager.notifyPaymentSuccess(req.user!.id, billAmount, business.businessName);
+        wsManager.notifyPaymentReceived(business.userId, req.user!.name, billAmount);
       }
       
       res.json({
         success: true,
-        bCoinsEarned: actualBCoinsEarned,
-        platformFee: platformCommission,
-        businessName: business.businessName,
-        transaction,
+        payment: {
+          billAmount: parseFloat(billAmount),
+          prebucksUsed: prebucksAmount,
+          cashPaid: cashAmount,
+          newPrebucksEarned: actualPrebucksEarned,
+          platformFee: platformCommission
+        },
+        shop: business.businessName,
+        transactions
       });
     } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : "Failed to scan QR code" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Payment failed" });
     }
   });
 
@@ -735,6 +799,15 @@ export function createProductionRouter() {
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch platform analytics" });
+    }
+  });
+
+  // BUSINESS CATEGORIES (Public endpoint for frontend)
+  router.get("/api/business/categories", async (req, res) => {
+    try {
+      res.json(BUSINESS_CATEGORIES);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch business categories" });
     }
   });
 
@@ -975,6 +1048,22 @@ export function createProductionRouter() {
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to confirm payment" });
+    }
+  });
+
+  // Merchant payout (mock) — request withdrawal to bank
+  router.post("/api/payments/withdraw", authenticateToken, requireBusiness, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { amount, accountHolder, accountNumber, ifsc } = req.body || {};
+      const amt = parseFloat(amount || '0');
+      if (!amount || amt <= 0 || !accountHolder || !accountNumber || !ifsc) {
+        return res.status(400).json({ error: "amount, accountHolder, accountNumber, ifsc are required" });
+      }
+      // In real world: validate KYC, check balance, enqueue payout job
+      const payoutId = `pout_${Date.now()}`;
+      return res.json({ success: true, payoutId, status: 'processing', amount: amt.toFixed(2) });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to initiate withdrawal" });
     }
   });
 

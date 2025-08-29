@@ -13,9 +13,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { authService } from "@/lib/auth";
 import { useLocation } from "wouter";
 import Navigation from "@/components/navigation";
+import WalletWidget from "@/components/wallet-widget";
 import EnhancedQRScanner from "@/components/enhanced-qr-scanner";
 import EnhancedCustomerFeatures from "@/components/enhanced-customer-features";
 import { BUSINESS_CATEGORIES } from "@/lib/constants";
+import { Link } from "wouter";
+import { QrCode, Gift, MapPin } from "lucide-react";
 
 export default function CustomerDashboard() {
   const [, setLocation] = useLocation();
@@ -28,6 +31,12 @@ export default function CustomerDashboard() {
       setLocation("/customer-login");
       return;
     }
+    try {
+      if (localStorage.getItem('openScanOnDashboard') === '1') {
+        localStorage.removeItem('openScanOnDashboard');
+        setPayDialogOpen(true);
+      }
+    } catch {}
   }, [user, setLocation]);
 
   const { data: profile, isLoading: profileLoading } = useQuery<any>({
@@ -151,10 +160,28 @@ export default function CustomerDashboard() {
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-end mb-4">
+          <WalletWidget showActions={true} onScanClick={() => setPayDialogOpen(true)} />
+        </div>
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-baartal-blue mb-2">Welcome back, {user.name}!</h1>
           <p className="text-gray-600">Your Prebucks wallet and local business network</p>
+          <div className="mt-4 flex items-center gap-3">
+            <Button className="bg-baartal-orange text-white" onClick={() => setPayDialogOpen(true)}>
+              <QrCode className="mr-2 h-4 w-4" /> Redeem Prebucks
+            </Button>
+            <Link href="/offers">
+              <Button variant="outline" className="border-baartal-blue text-baartal-blue">
+                <Gift className="mr-2 h-4 w-4" /> View Offers
+              </Button>
+            </Link>
+            <Link href="/bundles">
+              <Button variant="outline" className="border-gray-300">
+                <MapPin className="mr-2 h-4 w-4" /> Nearby Bundles
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Prebucks Balance Card */}

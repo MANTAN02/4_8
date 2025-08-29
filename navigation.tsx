@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Coins, LogOut, User, Store, Home, Info, Phone, HelpCircle, Shield } from "lucide-react";
+import { Menu, X, Coins, LogOut, User, Store, Home, Info, Phone, HelpCircle, Shield, Gift, MapPin } from "lucide-react";
+import WalletWidget from "@/components/wallet-widget";
 import { authService } from "@/lib/auth";
 
 export default function Navigation() {
@@ -23,21 +24,51 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/for-users">
-              <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/for-users' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
                 <Home className="mr-1 h-4 w-4" />
                 For Users
               </span>
             </Link>
             <Link href="/for-merchants">
-              <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/for-merchants' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
                 <Store className="mr-1 h-4 w-4" />
                 For Merchants
               </span>
             </Link>
             <Link href="/about">
-              <span className="text-baartal-blue hover:text-baartal-orange transition-colors cursor-pointer flex items-center">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/about' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
                 <Info className="mr-1 h-4 w-4" />
                 About
+              </span>
+            </Link>
+            <Link href="/offers">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/offers' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
+                <Gift className="mr-1 h-4 w-4" />
+                Offers
+              </span>
+            </Link>
+            <Link href="/bundles">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/bundles' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
+                <MapPin className="mr-1 h-4 w-4" />
+                Bundles
+              </span>
+            </Link>
+            <Link href="/wallet">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/wallet' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
+                <Shield className="mr-1 h-4 w-4" />
+                Wallet
+              </span>
+            </Link>
+            <Link href="/notifications">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/notifications' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
+                <HelpCircle className="mr-1 h-4 w-4" />
+                Notifications
+              </span>
+            </Link>
+            <Link href="/help">
+              <span className={`transition-colors cursor-pointer flex items-center ${location === '/help' ? 'text-baartal-orange' : 'text-baartal-blue hover:text-baartal-orange'}`}>
+                <HelpCircle className="mr-1 h-4 w-4" />
+                Help
               </span>
             </Link>
             <Link href="/faq">
@@ -55,6 +86,9 @@ export default function Navigation() {
             
             {user ? (
               <div className="flex items-center space-x-4">
+                {user.userType === 'customer' && (
+                  <WalletWidget showActions={false} />
+                )}
                 <span className="text-sm text-baartal-blue">Hi, {user.name}</span>
                 <Link href={user.userType === 'customer' ? '/customer-dashboard' : '/merchant-dashboard'}>
                   <Button variant="outline" className="border-baartal-orange text-baartal-orange hover:bg-baartal-orange hover:text-white">

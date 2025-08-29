@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Store, Users, TrendingUp, Coins, QrCode, Star, 
-  BarChart3, Bell, Settings, Upload, Eye, Download 
+  BarChart3, Eye, Download, IndianRupee 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +21,107 @@ import Navigation from "@/components/navigation";
 import QRCodeGenerator from "@/components/qr-code-generator";
 import EnhancedBusinessSettings from "@/components/enhanced-business-settings";
 import { BUSINESS_CATEGORIES } from "@/lib/constants";
+function downloadCSV(filename: string, rows: any[]) {
+  const headers = Object.keys(rows[0] || { id: '', type: '', amount: '', createdAt: '' });
+  const csv = [headers.join(','), ...rows.map(r => headers.map(h => JSON.stringify(r[h] ?? '')).join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function QRList() {
+  const user = authService.getUser();
+  const { data: myBusiness } = useQuery<any>({ queryKey: ["/api/businesses/user", user?.id], enabled: !!user?.id });
+  const { data: qrCodes = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/business/qr-codes"],
+    enabled: !!myBusiness?.id,
+  });
+  if (isLoading) return <div className="text-gray-600">Loading...</div>;
+  if (!qrCodes.length) return <div className="text-gray-500">No QR codes yet. Generate one above.</div>;
+  return (
+    <div className="space-y-2">
+      {qrCodes.map((q: any) => (
+        <div key={q.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="text-sm text-gray-700 break-all">{q.code}</div>
+          <div className="flex items-center gap-2">
+            <Badge className={q.isActive ? 'bg-green-600' : 'bg-gray-400'}>{q.isActive ? 'Active' : 'Inactive'}</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { navigator.clipboard.writeText(q.code); }}
+            >
+              Copy Code
+            </Button>
+            <a
+              className="text-sm underline text-baartal-blue"
+              href={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(q.code)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open QR
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PayoutsPanel({ businessId }: { businessId: string }) {
+  const { toast } = useToast();
+  const [amount, setAmount] = useState("");
+  const [accountHolder, setAccountHolder] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifsc, setIfsc] = useState("");
+
+  const withdrawMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/payments/withdraw", { amount, accountHolder, accountNumber, ifsc });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Withdrawal Requested", description: `Payout ID: ${data.payoutId}` });
+      setAmount(""); setAccountHolder(""); setAccountNumber(""); setIfsc("");
+    },
+    onError: (e: any) => toast({ title: "Withdrawal Failed", description: e.message || 'Try again', variant: 'destructive' })
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Withdraw to Bank</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid md:grid-cols-2 gap-3">
+          <div>
+            <Label>Amount (₹)</Label>
+            <Input type="number" min="0" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g., 2500" />
+          </div>
+          <div>
+            <Label>Account Holder</Label>
+            <Input value={accountHolder} onChange={e => setAccountHolder(e.target.value)} placeholder="Full name" />
+          </div>
+          <div>
+            <Label>Account Number</Label>
+            <Input value={accountNumber} onChange={e => setAccountNumber(e.target.value)} placeholder="1234 5678 9012" />
+          </div>
+          <div>
+            <Label>IFSC</Label>
+            <Input value={ifsc} onChange={e => setIfsc(e.target.value)} placeholder="HDFC0001234" />
+          </div>
+        </div>
+        <Button className="bg-baartal-orange text-white" onClick={() => withdrawMutation.mutate()} disabled={withdrawMutation.isPending || !amount}>
+          <IndianRupee className="mr-2 h-4 w-4" /> {withdrawMutation.isPending ? 'Requesting...' : 'Request Withdrawal'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function MerchantDashboard() {
   const [, setLocation] = useLocation();
@@ -62,6 +163,15 @@ export default function MerchantDashboard() {
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<any[]>({
     queryKey: ["/api/bcoin-transactions/business", business?.id],
     enabled: !!business?.id,
+  });
+
+  // UI filters for transactions
+  const [txTypeFilter, setTxTypeFilter] = useState<'all' | 'earned' | 'redeemed' | 'platform_fee'>("all");
+  const [txSearch, setTxSearch] = useState("");
+  const filteredTransactions = (transactions || []).filter((t: any) => {
+    const typeOk = txTypeFilter === 'all' || t.type === txTypeFilter;
+    const searchOk = !txSearch || (t.description || '').toLowerCase().includes(txSearch.toLowerCase());
+    return typeOk && searchOk;
   });
 
   const { data: ratings = [], isLoading: ratingsLoading } = useQuery<any[]>({
@@ -170,6 +280,24 @@ export default function MerchantDashboard() {
             {getCategoryIcon(business.category)} {business.businessName}
           </h1>
           <p className="text-gray-600">Merchant Dashboard - Manage your Prebucks business</p>
+          <div className="mt-4 flex items-center gap-3">
+            <Button
+              className="bg-baartal-orange text-white"
+              onClick={() => createQRCodeMutation.mutate()}
+              disabled={createQRCodeMutation.isPending}
+            >
+              <QrCode className="mr-2 h-4 w-4" /> {createQRCodeMutation.isPending ? 'Generating...' : 'Generate Shop QR'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const el = document.getElementById('transactions-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <TrendingUp className="mr-2 h-4 w-4" /> View Recent Payments
+            </Button>
+          </div>
         </div>
 
         {/* Overview Cards */}
@@ -224,19 +352,48 @@ export default function MerchantDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="qr-codes">QR Codes</TabsTrigger>
             <TabsTrigger value="partners">Bundle Partners</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="payouts">Payouts</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid lg:grid-cols-2 gap-6">
-              <Card>
+              <Card id="transactions-section">
                 <CardHeader>
-                  <CardTitle>Recent Transactions</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Recent Transactions</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="border rounded px-2 py-1 text-sm"
+                        value={txTypeFilter}
+                        onChange={(e) => setTxTypeFilter(e.target.value as any)}
+                      >
+                        <option value="all">All</option>
+                        <option value="earned">Earned</option>
+                        <option value="redeemed">Redeemed</option>
+                        <option value="platform_fee">Platform Fee</option>
+                      </select>
+                      <input
+                        className="border rounded px-2 py-1 text-sm w-40"
+                        placeholder="Search..."
+                        value={txSearch}
+                        onChange={(e) => setTxSearch(e.target.value)}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadCSV(`transactions_${business.id}.csv`, filteredTransactions)}
+                        disabled={!filteredTransactions.length}
+                      >
+                        <Download className="mr-2 h-3.5 w-3.5" /> Export CSV
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {transactionsLoading ? (
@@ -251,7 +408,7 @@ export default function MerchantDashboard() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {transactions.slice(0, 5).map((transaction: any) => (
+                      {filteredTransactions.slice(0, 10).map((transaction: any) => (
                         <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div>
                             <p className="font-medium">{transaction.description}</p>
@@ -310,6 +467,14 @@ export default function MerchantDashboard() {
 
           <TabsContent value="qr-codes" className="space-y-6">
             <QRCodeGenerator businessId={business?.id} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Your QR Codes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <QRList />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="partners" className="space-y-6">
@@ -396,6 +561,10 @@ export default function MerchantDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="payouts" className="space-y-6">
+            <PayoutsPanel businessId={business.id} />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

@@ -64,6 +64,7 @@ export interface IStorage {
   // QR Code operations
   createQrCode(qrCode: InsertQrCode): Promise<QrCode>;
   getQrCodeById(id: string): Promise<QrCode | null>;
+  getQrCodeByCode(code: string): Promise<QrCode | null>;
   getQrCodesByBusiness(businessId: string): Promise<QrCode[]>;
   useQrCode(id: string, customerId: string): Promise<QrCode | null>;
 
@@ -282,6 +283,11 @@ export class MemStorage implements IStorage {
 
   async getQrCodeById(id: string): Promise<QrCode | null> {
     return this.qrCodes.get(id) || null;
+  }
+
+  async getQrCodeByCode(code: string): Promise<QrCode | null> {
+    const qrCodes = Array.from(this.qrCodes.values());
+    return qrCodes.find(qr => qr.code === code) || null;
   }
 
   async getQrCodesByBusiness(businessId: string): Promise<QrCode[]> {
@@ -519,6 +525,11 @@ export class DatabaseStorage implements IStorage {
 
   async getQrCodeById(id: string): Promise<QrCode | null> {
     const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.id, id));
+    return qrCode || null;
+  }
+
+  async getQrCodeByCode(code: string): Promise<QrCode | null> {
+    const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.code, code));
     return qrCode || null;
   }
 
