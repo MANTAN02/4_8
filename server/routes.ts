@@ -277,6 +277,39 @@ export function createRouter(storage: IStorage) {
     }
   });
 
+  // Customer balance endpoints for the wallet system
+  router.get("/api/customer/balance/:customerId", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      
+      // Ensure user can only access their own balance or they're an admin
+      if (req.user!.id !== customerId && req.user!.userType !== 'admin') {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const balance = await storage.getCustomerBalance(customerId);
+      res.json(balance);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  router.get("/api/customer/transactions/:customerId", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerId } = req.params;
+      
+      // Ensure user can only access their own transactions or they're an admin
+      if (req.user!.id !== customerId && req.user!.userType !== 'admin') {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const transactions = await storage.getBCoinTransactionsByCustomer(customerId);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // QR Code routes
   router.post("/api/qr-codes", authenticateToken, requireBusiness, async (req: AuthenticatedRequest, res) => {
     try {
@@ -335,6 +368,101 @@ export function createRouter(storage: IStorage) {
       }
 
       res.json(qrCode);
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // QR Code scanning endpoint (for the QRCodeScanner component)
+  router.post("/api/qr-codes/:id/scan", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+    try {
+      const customerId = req.user!.id;
+
+      const qrCode = await storage.useQrCode(req.params.id, customerId);
+      if (!qrCode) {
+        return res.status(404).json({ error: "QR code not found or already used" });
+      }
+
+      // Create B-Coin transaction
+      const business = await storage.getBusinessById(qrCode.businessId);
+      if (!business) {
+        return res.status(404).json({ error: "Business not found" });
+      }
+
+      const bCoinsEarned = parseFloat(qrCode.amount.toString()) * (parseFloat(business.bCoinRate?.toString() || "5") / 100);
+      
+      await storage.createBCoinTransaction({
+        customerId,
+        businessId: qrCode.businessId,
+        type: "earned",
+        amount: qrCode.amount,
+        bCoinsChanged: bCoinsEarned.toString(),
+        description: `Earned B-Coins from ${business.businessName}`,
+        qrCodeId: qrCode.id,
+      });
+
+      // Update customer balance
+      const currentBalance = await storage.getCustomerBalance(customerId);
+      const newBalance = (currentBalance ? parseFloat(currentBalance.totalBCoins?.toString() || "0") : 0) + bCoinsEarned;
+      await storage.updateCustomerBalance(customerId, newBalance);
+
+      res.json({
+        success: true,
+        bCoinsEarned: bCoinsEarned.toFixed(2),
+        businessName: business.businessName,
+        qrCode
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // QR transaction endpoint (for the QRScanner page)
+  router.post("/api/qr-transactions", authenticateToken, requireCustomer, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { qrCodeId, amount } = req.body;
+      const customerId = req.user!.id;
+
+      const qrCode = await storage.getQrCodeById(qrCodeId);
+      if (!qrCode) {
+        return res.status(404).json({ error: "QR code not found" });
+      }
+
+      if (qrCode.isUsed) {
+        return res.status(400).json({ error: "QR code already used" });
+      }
+
+      // Use the QR code
+      await storage.useQrCode(qrCodeId, customerId);
+
+      // Get business info
+      const business = await storage.getBusinessById(qrCode.businessId);
+      if (!business) {
+        return res.status(404).json({ error: "Business not found" });
+      }
+
+      const bCoinsEarned = parseFloat(amount) * (parseFloat(business.bCoinRate?.toString() || "5") / 100);
+      
+      await storage.createBCoinTransaction({
+        customerId,
+        businessId: qrCode.businessId,
+        type: "earned",
+        amount: amount,
+        bCoinsChanged: bCoinsEarned.toString(),
+        description: `Earned B-Coins from ${business.businessName}`,
+        qrCodeId: qrCode.id,
+      });
+
+      // Update customer balance
+      const currentBalance = await storage.getCustomerBalance(customerId);
+      const newBalance = (currentBalance ? parseFloat(currentBalance.totalBCoins?.toString() || "0") : 0) + bCoinsEarned;
+      await storage.updateCustomerBalance(customerId, newBalance);
+
+      res.json({
+        success: true,
+        bCoinsEarned: bCoinsEarned.toFixed(2),
+        businessName: business.businessName
+      });
     } catch (error) {
       res.status(500).json({ error: "Internal server error" });
     }

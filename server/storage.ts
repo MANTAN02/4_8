@@ -94,6 +94,8 @@ export class MemStorage implements IStorage {
   private bCoinTransactions: Map<string, BCoinTransaction> = new Map();
   private qrCodes: Map<string, QrCode> = new Map();
   private ratings: Map<string, Rating> = new Map();
+  private notificationsMap: Map<string, Notification> = new Map();
+  private customerBalancesMap: Map<string, CustomerBalance> = new Map();
 
   private generateId() {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -287,7 +289,7 @@ export class MemStorage implements IStorage {
 
   async getQrCodeByCode(code: string): Promise<QrCode | null> {
     const qrCodes = Array.from(this.qrCodes.values());
-    return qrCodes.find(qr => qr.code === code) || null;
+    return qrCodes.find(qr => qr.id === code) || null;
   }
 
   async getQrCodesByBusiness(businessId: string): Promise<QrCode[]> {
@@ -340,6 +342,69 @@ export class MemStorage implements IStorage {
     
     const sum = ratings.reduce((total, rating) => total + rating.rating, 0);
     return sum / ratings.length;
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const newNotification: Notification = {
+      id: this.generateId(),
+      ...notification,
+      data: notification.data ?? null,
+      isRead: notification.isRead ?? false,
+      createdAt: new Date(),
+    };
+    this.notificationsMap.set(newNotification.id, newNotification);
+    return newNotification;
+  }
+
+  async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    return Array.from(this.notificationsMap.values())
+      .filter(n => n.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    const notification = this.notificationsMap.get(notificationId);
+    if (notification) {
+      this.notificationsMap.set(notificationId, { ...notification, isRead: true });
+    }
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    for (const [id, notification] of this.notificationsMap.entries()) {
+      if (notification.userId === userId && !notification.isRead) {
+        this.notificationsMap.set(id, { ...notification, isRead: true });
+      }
+    }
+  }
+
+  // Customer balance operations
+  async getCustomerBalance(customerId: string): Promise<CustomerBalance | null> {
+    const balances = Array.from(this.customerBalancesMap.values());
+    return balances.find(b => b.customerId === customerId) || null;
+  }
+
+  async updateCustomerBalance(customerId: string, totalBCoins: number): Promise<CustomerBalance> {
+    const existingBalance = await this.getCustomerBalance(customerId);
+    
+    if (existingBalance) {
+      const updatedBalance = {
+        ...existingBalance,
+        totalBCoins: totalBCoins.toString(),
+        updatedAt: new Date(),
+      };
+      this.customerBalancesMap.set(existingBalance.id, updatedBalance);
+      return updatedBalance;
+    } else {
+      const newBalance: CustomerBalance = {
+        id: this.generateId(),
+        customerId,
+        totalBCoins: totalBCoins.toString(),
+        updatedAt: new Date(),
+      };
+      this.customerBalancesMap.set(newBalance.id, newBalance);
+      return newBalance;
+    }
   }
 }
 
@@ -529,7 +594,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getQrCodeByCode(code: string): Promise<QrCode | null> {
-    const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.code, code));
+    const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.id, code));
     return qrCode || null;
   }
 
@@ -589,6 +654,75 @@ export class DatabaseStorage implements IStorage {
     
     const sum = businessRatings.reduce((total, rating) => total + rating.rating, 0);
     return sum / businessRatings.length;
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values({
+        ...notification,
+        data: notification.data ?? null,
+        isRead: notification.isRead ?? false,
+      })
+      .returning();
+    return newNotification;
+  }
+
+  async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  // Customer balance operations
+  async getCustomerBalance(customerId: string): Promise<CustomerBalance | null> {
+    const [balance] = await db
+      .select()
+      .from(customerBalances)
+      .where(eq(customerBalances.customerId, customerId));
+    return balance || null;
+  }
+
+  async updateCustomerBalance(customerId: string, totalBCoins: number): Promise<CustomerBalance> {
+    const existingBalance = await this.getCustomerBalance(customerId);
+    
+    if (existingBalance) {
+      const [updatedBalance] = await db
+        .update(customerBalances)
+        .set({ 
+          totalBCoins: totalBCoins.toString(),
+          updatedAt: new Date(),
+        })
+        .where(eq(customerBalances.id, existingBalance.id))
+        .returning();
+      return updatedBalance;
+    } else {
+      const [newBalance] = await db
+        .insert(customerBalances)
+        .values({
+          customerId,
+          totalBCoins: totalBCoins.toString(),
+        })
+        .returning();
+      return newBalance;
+    }
   }
 }
 

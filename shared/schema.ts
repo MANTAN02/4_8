@@ -102,17 +102,6 @@ export const customerBalances = pgTable("customer_balances", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Insert schemas using drizzle-zod
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertBusinessSchema = createInsertSchema(businesses).omit({ id: true, createdAt: true });
-export const insertBundleSchema = createInsertSchema(bundles).omit({ id: true, createdAt: true });
-export const insertBundleMembershipSchema = createInsertSchema(bundleMemberships).omit({ id: true, joinedAt: true });
-export const insertBCoinTransactionSchema = createInsertSchema(bCoinTransactions).omit({ id: true, createdAt: true });
-export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({ createdAt: true });
-export const insertRatingSchema = createInsertSchema(ratings).omit({ id: true, createdAt: true });
-export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
-export const insertCustomerBalanceSchema = createInsertSchema(customerBalances).omit({ id: true, updatedAt: true });
-
 // Types
 export type User = typeof users.$inferSelect;
 export type Business = typeof businesses.$inferSelect;
@@ -124,15 +113,91 @@ export type Rating = typeof ratings.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type CustomerBalance = typeof customerBalances.$inferSelect;
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertBusiness = z.infer<typeof insertBusinessSchema>;
-export type InsertBundle = z.infer<typeof insertBundleSchema>;
-export type InsertBundleMembership = z.infer<typeof insertBundleMembershipSchema>;
-export type InsertBCoinTransaction = z.infer<typeof insertBCoinTransactionSchema>;
-export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
-export type InsertRating = z.infer<typeof insertRatingSchema>;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
-export type InsertCustomerBalance = z.infer<typeof insertCustomerBalanceSchema>;
+// Insert types
+export type InsertUser = typeof users.$inferInsert;
+export type InsertBusiness = typeof businesses.$inferInsert;
+export type InsertBundle = typeof bundles.$inferInsert;
+export type InsertBundleMembership = typeof bundleMemberships.$inferInsert;
+export type InsertBCoinTransaction = typeof bCoinTransactions.$inferInsert;
+export type InsertQrCode = typeof qrCodes.$inferInsert;
+export type InsertRating = typeof ratings.$inferInsert;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type InsertCustomerBalance = typeof customerBalances.$inferInsert;
+
+// Manual Zod schemas for validation
+export const insertUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  userType: z.enum(["customer", "business"]),
+  name: z.string().min(1),
+  phone: z.string().optional().nullable(),
+});
+
+export const insertBusinessSchema = z.object({
+  userId: z.string().uuid(),
+  businessName: z.string().min(1),
+  category: z.string().min(1),
+  description: z.string().optional().nullable(),
+  address: z.string().min(1),
+  pincode: z.string().min(1),
+  phone: z.string().optional().nullable(),
+  isVerified: z.boolean().optional(),
+  bCoinRate: z.string().optional(),
+});
+
+export const insertBundleSchema = z.object({
+  name: z.string().min(1),
+  pincode: z.string().min(1),
+  description: z.string().optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+export const insertBundleMembershipSchema = z.object({
+  bundleId: z.string().uuid(),
+  businessId: z.string().uuid(),
+});
+
+export const insertBCoinTransactionSchema = z.object({
+  customerId: z.string().uuid(),
+  businessId: z.string().uuid(),
+  type: z.enum(["earned", "redeemed"]),
+  amount: z.string(),
+  bCoinsChanged: z.string(),
+  description: z.string().optional().nullable(),
+  qrCodeId: z.string().optional().nullable(),
+});
+
+export const insertQrCodeSchema = z.object({
+  id: z.string(),
+  businessId: z.string().uuid(),
+  amount: z.string(),
+  description: z.string().optional().nullable(),
+  isUsed: z.boolean().optional(),
+  usedBy: z.string().uuid().optional().nullable(),
+  usedAt: z.date().optional().nullable(),
+  expiresAt: z.date().optional().nullable(),
+});
+
+export const insertRatingSchema = z.object({
+  customerId: z.string().uuid(),
+  businessId: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  review: z.string().optional().nullable(),
+});
+
+export const insertNotificationSchema = z.object({
+  userId: z.string().uuid(),
+  type: z.string(),
+  title: z.string(),
+  message: z.string(),
+  data: z.string().optional().nullable(),
+  isRead: z.boolean().optional(),
+});
+
+export const insertCustomerBalanceSchema = z.object({
+  customerId: z.string().uuid(),
+  totalBCoins: z.string().optional().nullable(),
+});
 
 // Business categories
 export const BUSINESS_CATEGORIES = [
