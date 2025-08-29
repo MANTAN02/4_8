@@ -90,7 +90,7 @@ export default function CustomerLogin() {
       await authService.login(data.email, data.password);
       toast({
         title: "Account created!",
-        description: "Welcome to Baartal. You have been logged in automatically.",
+        description: "Welcome to Prebucks - Your discount currency. You have been logged in automatically.",
       });
       setLocation("/customer-dashboard");
     } catch (error) {
@@ -113,8 +113,8 @@ export default function CustomerLogin() {
           </CardTitle>
           <CardDescription>
             {isRegistering 
-              ? "Join Baartal and start earning B-Coins today" 
-              : "Sign in to your Baartal customer account"
+              ? "Join Prebucks and start earning discount currency today" 
+              : "Sign in to your Prebucks customer account"
             }
           </CardDescription>
         </CardHeader>

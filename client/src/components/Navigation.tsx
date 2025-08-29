@@ -102,9 +102,14 @@ export function Navigation() {
                     className="w-8 h-8 object-contain"
                   />
                 </div>
-                <span className="text-2xl font-bold text-gradient-orange">
-                  Prebucks
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-gradient-orange">
+                    Prebucks
+                  </span>
+                  <span className="text-xs text-orange-600 font-medium -mt-1">
+                    Your discount currency
+                  </span>
+                </div>
               </div>
             </Link>
 

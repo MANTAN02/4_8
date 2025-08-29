@@ -46,14 +46,14 @@ export default function LandingPage() {
     {
       name: "Priya Sharma",
       role: "Small Business Owner",
-      content: "Prebucks increased my customer retention by 300%. The Bucks system is revolutionary!",
+      content: "Prebucks increased my customer retention by 300%. The discount currency system is revolutionary!",
       rating: 5,
       location: "Andheri, Mumbai"
     },
     {
       name: "Rajesh Kumar",
       role: "Regular Customer",
-      content: "I've saved over ₹15,000 using Bucks. Best loyalty platform in Mumbai!",
+      content: "I've saved over ₹15,000 using Prebucks. Your discount currency - best platform in Mumbai!",
       rating: 5,
       location: "Bandra, Mumbai"
     },
@@ -112,10 +112,13 @@ export default function LandingPage() {
               🚀 Now Live in Mumbai
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gradient-orange leading-tight">
-              Mumbai's #1 Loyalty Platform
+              Your discount currency
             </h1>
+            <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-gray-700">
+              Mumbai's #1 Loyalty Platform
+            </h2>
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
-              Earn Bucks at local businesses, get real rewards, and support your community. 
+              Earn Prebucks at local businesses, get real discounts, and support your community. 
               <span className="font-semibold text-orange-600"> Join 10,000+ Mumbai residents!</span>
             </p>
             

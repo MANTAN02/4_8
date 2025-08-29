@@ -48,7 +48,7 @@ export function BusinessCard({ business, showActions = true, onViewDetails }: Bu
     try {
       await navigator.share({
         title: business.businessName,
-        text: `Check out ${business.businessName} on Baartal!`,
+        text: `Check out ${business.businessName} on Prebucks - Your discount currency!`,
         url: window.location.href,
       });
     } catch {

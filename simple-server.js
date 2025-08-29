@@ -10,7 +10,7 @@ process.env.NODE_ENV = 'development';
 process.env.PORT = '5000';
 process.env.DISABLE_CLUSTERING = 'true';
 
-console.log('🚀 Starting Baartal Server (Simple Mode)');
+console.log('🚀 Starting Prebucks Server (Simple Mode)');
 console.log('📍 Single process mode for Replit compatibility');
 console.log('🌐 Server will run on: http://0.0.0.0:5000');
 

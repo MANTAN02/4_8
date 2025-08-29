@@ -86,10 +86,10 @@ export default function Login() {
         <div className="text-center mb-8">
           <Link href="/">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-2">
-              Baartal
+              Prebucks
             </h1>
           </Link>
-          <p className="text-muted-foreground">Welcome back to Mumbai's #1 loyalty platform</p>
+          <p className="text-muted-foreground">Your discount currency - Welcome back to Mumbai's #1 loyalty platform</p>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">

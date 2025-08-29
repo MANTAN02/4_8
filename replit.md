@@ -1,10 +1,10 @@
-# Baartal - SUPER-STRONG Production-Ready Hyperlocal B-Coin Platform 🚀
+# Prebucks - Your discount currency - SUPER-STRONG Production-Ready Hyperlocal Platform 🚀
 
 ## Project Overview - READY FOR DEPLOYMENT & MONEY MAKING
-Baartal is a comprehensive, production-grade hyperlocal B-Coin loyalty platform focused on Mumbai with MASSIVE revenue potential. Features include:
-- **REVENUE GENERATION**: 5% platform commission on ALL B-Coin transactions
+Prebucks is a comprehensive, production-grade hyperlocal discount currency loyalty platform focused on Mumbai with MASSIVE revenue potential. Features include:
+- **REVENUE GENERATION**: 5% platform commission on ALL Prebucks transactions
 - **SECURITY-FIRST**: Military-grade authentication, rate limiting, input validation
-- **REAL-TIME**: WebSocket notifications, live balance updates, instant QR scanning
+- **REAL-TIME**: WebSocket notifications, live discount currency balance updates, instant QR scanning
 - **SCALABLE**: Production database with optimized queries and caching
 - **MOBILE-READY**: Progressive Web App with camera QR scanning
 
