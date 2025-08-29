@@ -68,15 +68,18 @@ const securityHeaders = (req: any, res: any, next: any) => {
 };
 
 async function createServer() {
+  // Disable clustering for Replit compatibility
+  process.env.DISABLE_CLUSTERING = 'true';
+  
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
   // Trust proxy for proper IP detection
   app.set('trust proxy', 1);
 
-  // Super backend tracking
-  app.use(trackRequest);
-  app.use(monitoringMiddleware);
+  // Super backend tracking (disabled clustering for Replit)
+  // app.use(trackRequest);
+  // app.use(monitoringMiddleware);
 
   // Advanced middleware stack
   app.use(requestMonitoring);
