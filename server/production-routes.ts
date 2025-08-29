@@ -1067,6 +1067,70 @@ export function createProductionRouter() {
     }
   });
 
+  // Newsletter subscription endpoint
+  router.post("/api/newsletter/subscribe", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: "Valid email is required" });
+      }
+
+      // Store newsletter subscription (in production, integrate with email service)
+      // For now, just log it
+      console.log(`Newsletter subscription: ${email}`);
+      
+      res.json({ 
+        success: true, 
+        message: "Successfully subscribed to newsletter",
+        email 
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to subscribe to newsletter" });
+    }
+  });
+
+  // QR code analytics endpoint
+  router.get("/api/qr-codes/analytics/:businessId", authenticateToken, async (req, res) => {
+    try {
+      const { businessId } = req.params;
+      
+      // Mock analytics data (in production, calculate from actual usage)
+      const analytics = {
+        totalScans: Math.floor(Math.random() * 500) + 100,
+        totalRevenue: Math.floor(Math.random() * 50000) + 10000,
+        avgTransactionValue: Math.floor(Math.random() * 1000) + 200,
+        topScanTimes: ['6PM-8PM', '12PM-2PM', '8AM-10AM'],
+        weeklyGrowth: Math.floor(Math.random() * 50) + 10
+      };
+      
+      res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch QR analytics" });
+    }
+  });
+
+  // Toggle QR code status
+  router.patch("/api/qr-codes/:id/toggle", authenticateToken, requireBusiness, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      
+      const qrCode = await storage.getQrCodeById(id);
+      if (!qrCode) {
+        return res.status(404).json({ error: "QR code not found" });
+      }
+      
+      // Update QR code status (mock implementation)
+      res.json({ 
+        success: true, 
+        qrCode: { ...qrCode, isActive },
+        message: `QR code ${isActive ? 'activated' : 'deactivated'} successfully`
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to toggle QR code status" });
+    }
+  });
+
   // Error handling middleware
   router.use((error: any, req: any, res: any, next: any) => {
     console.error('API Error:', error);

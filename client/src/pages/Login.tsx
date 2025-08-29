@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, Smartphone, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { useLogin } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -20,6 +21,7 @@ export default function Login() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const loginMutation = useLogin();
 
@@ -54,10 +56,11 @@ export default function Login() {
     
     if (!validateForm()) return;
 
+    setIsLoading(true);
     try {
       await loginMutation.mutateAsync(formData);
       toast({
-        title: 'Welcome back!',
+        title: 'Welcome back! 🎉',
         description: 'You have been successfully logged in.',
       });
       setLocation('/');
@@ -67,6 +70,8 @@ export default function Login() {
         description: error instanceof Error ? error.message : 'Please check your credentials and try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,6 +82,35 @@ export default function Login() {
     };
     
     setFormData(demoCredentials[userType]);
+    toast({
+      title: 'Demo credentials loaded',
+      description: `Click "Sign In" to login as ${userType}`,
+    });
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      toast({
+        title: 'Google sign-in successful! 🎉',
+        description: `Welcome, ${result.user.displayName || result.user.email}`,
+      });
+      setLocation('/');
+    } catch (error) {
+      toast({
+        title: 'Google sign-in failed',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleForgotPassword = () => {
+    toast({
+      title: 'Password Reset',
+      description: 'Password reset functionality will be implemented soon. Contact support for assistance.',
+    });
   };
 
   return (
@@ -85,11 +119,34 @@ export default function Login() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-2">
-              Prebucks
-            </h1>
+            <div className="flex items-center justify-center mb-4 cursor-pointer group">
+              <img 
+                src="/attached_assets/image_1754320645449.png" 
+                alt="Prebucks Logo" 
+                className="w-12 h-12 mr-3 group-hover:scale-110 transition-transform"
+              />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                Prebucks
+              </h1>
+            </div>
           </Link>
           <p className="text-muted-foreground">Your discount currency - Welcome back to Mumbai's #1 loyalty platform</p>
+          
+          {/* Trust Indicators */}
+          <div className="flex justify-center gap-4 mt-4">
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Shield className="w-3 h-3" />
+              Secure
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              Fast
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Smartphone className="w-3 h-3" />
+              Mobile Ready
+            </Badge>
+          </div>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -110,22 +167,23 @@ export default function Login() {
                   variant="outline"
                   size="sm"
                   onClick={() => demoLogin('customer')}
-                  className="text-xs"
+                  className="text-xs hover:bg-blue-50 hover:border-blue-300"
                   data-testid="button-demo-customer"
                 >
-                  Demo Customer
+                  👤 Demo Customer
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => demoLogin('business')}
-                  className="text-xs"
+                  className="text-xs hover:bg-purple-50 hover:border-purple-300"
                   data-testid="button-demo-business"
                 >
-                  Demo Business
+                  🏪 Demo Business
                 </Button>
               </div>
+              
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -134,34 +192,17 @@ export default function Login() {
                   <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
                 </div>
               </div>
-              <div className="flex justify-center mt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={async () => {
-                    try {
-                      const provider = new GoogleAuthProvider();
-                      const result = await signInWithPopup(auth, provider);
-                      toast({
-                        title: 'Google sign-in successful',
-                        description: `Welcome, ${result.user.displayName || result.user.email}`,
-                      });
-                      setLocation('/');
-                    } catch (error) {
-                      toast({
-                        title: 'Google sign-in failed',
-                        description: error instanceof Error ? error.message : 'Please try again.',
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  data-testid="button-google-sign-in"
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-2" />
-                  Sign in with Google
-                </Button>
-              </div>
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2 hover:bg-gray-50"
+                onClick={handleGoogleSignIn}
+                data-testid="button-google-sign-in"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                Sign in with Google
+              </Button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -178,7 +219,7 @@ export default function Login() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={`pl-10 ${errors.email ? 'border-red-500 focus:border-red-500' : 'focus:border-orange-500'}`}
                     placeholder="your@email.com"
                     data-testid="input-email"
                   />
@@ -204,7 +245,7 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500 focus:border-red-500' : 'focus:border-orange-500'}`}
                     placeholder="Enter your password"
                     data-testid="input-password"
                   />
@@ -233,7 +274,13 @@ export default function Login() {
 
               {/* Forgot Password */}
               <div className="flex justify-end">
-                <Button variant="link" className="px-0 font-normal text-sm" data-testid="link-forgot-password">
+                <Button 
+                  type="button"
+                  variant="link" 
+                  className="px-0 font-normal text-sm text-orange-600 hover:text-orange-700" 
+                  onClick={handleForgotPassword}
+                  data-testid="link-forgot-password"
+                >
                   Forgot your password?
                 </Button>
               </div>
@@ -254,10 +301,10 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                disabled={loginMutation.isPending}
+                disabled={isLoading || loginMutation.isPending}
                 data-testid="button-sign-in"
               >
-                {loginMutation.isPending ? (
+                {isLoading || loginMutation.isPending ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Signing In...
@@ -275,18 +322,47 @@ export default function Login() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <Link href="/register">
-                  <Button variant="link" className="px-0 font-medium text-orange-600 hover:text-orange-700" data-testid="link-sign-up">
-                    Create account
-                  </Button>
-                </Link>
+                <Button 
+                  variant="link" 
+                  className="px-0 font-medium text-orange-600 hover:text-orange-700" 
+                  onClick={() => setLocation('/register')}
+                  data-testid="link-sign-up"
+                >
+                  Create account
+                </Button>
               </p>
+            </div>
+
+            {/* Quick Links */}
+            <div className="flex justify-center gap-4 text-sm">
+              <Button 
+                variant="link" 
+                className="px-0 text-gray-600 hover:text-orange-600"
+                onClick={() => setLocation('/about')}
+              >
+                About Us
+              </Button>
+              <Button 
+                variant="link" 
+                className="px-0 text-gray-600 hover:text-orange-600"
+                onClick={() => setLocation('/faq')}
+              >
+                FAQ
+              </Button>
+              <Button 
+                variant="link" 
+                className="px-0 text-gray-600 hover:text-orange-600"
+                onClick={() => setLocation('/contact')}
+              >
+                Support
+              </Button>
             </div>
 
             {/* Security Info */}
             <div className="text-center pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                🔒 Your data is protected with enterprise-grade security
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                <Shield className="w-3 h-3" />
+                Your data is protected with enterprise-grade security
               </p>
             </div>
           </CardContent>
@@ -295,9 +371,27 @@ export default function Login() {
         {/* Bottom Links */}
         <div className="text-center mt-8">
           <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-orange-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-orange-600 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-orange-600 transition-colors">Help Center</a>
+            <Button 
+              variant="link" 
+              className="px-0 text-xs hover:text-orange-600"
+              onClick={() => setLocation('/privacy')}
+            >
+              Privacy Policy
+            </Button>
+            <Button 
+              variant="link" 
+              className="px-0 text-xs hover:text-orange-600"
+              onClick={() => setLocation('/contact')}
+            >
+              Terms of Service
+            </Button>
+            <Button 
+              variant="link" 
+              className="px-0 text-xs hover:text-orange-600"
+              onClick={() => setLocation('/help')}
+            >
+              Help Center
+            </Button>
           </div>
         </div>
       </div>

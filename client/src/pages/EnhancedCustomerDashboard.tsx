@@ -38,7 +38,33 @@ export default function EnhancedCustomerDashboard() {
 
   const handleScanSuccess = (data: any) => {
     console.log('Scan successful:', data);
-    // Handle successful scan - update balance, show confirmation, etc.
+    toast({
+      title: 'Scan Successful! 🎉',
+      description: `You earned Prebucks at ${data.businessName}`,
+    });
+    queryClient.invalidateQueries({ queryKey: ['/api/customer/balance'] });
+  };
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'scan':
+        setShowScanner(true);
+        break;
+      case 'explore':
+        window.location.href = '/explore';
+        break;
+      case 'wallet':
+        window.location.href = '/wallet';
+        break;
+      case 'offers':
+        window.location.href = '/offers';
+        break;
+      case 'bundles':
+        window.location.href = '/bundles';
+        break;
+      default:
+        break;
+    }
   };
 
   if (!user) return null;
@@ -87,6 +113,33 @@ export default function EnhancedCustomerDashboard() {
               <QrCode className="w-4 h-4 mr-2" />
               Scan QR
             </Button>
+
+            {/* Quick Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="border-orange-200">
+                  Quick Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleQuickAction('explore')}>
+                  <Store className="w-4 h-4 mr-2" />
+                  Explore Businesses
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQuickAction('wallet')}>
+                  <Coins className="w-4 h-4 mr-2" />
+                  View Wallet
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQuickAction('offers')}>
+                  <Gift className="w-4 h-4 mr-2" />
+                  Browse Offers
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleQuickAction('bundles')}>
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Find Bundles
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
